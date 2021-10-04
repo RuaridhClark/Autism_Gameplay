@@ -1,5 +1,5 @@
 clear all
-folder1 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder1='H:\My Documents\MATLAB\Autism_MAIN\Create_adj';
 addpath(folder1)
 file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
 load('swipes_all704.mat')
