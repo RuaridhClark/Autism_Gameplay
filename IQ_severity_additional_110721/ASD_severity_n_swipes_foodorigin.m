@@ -1,21 +1,22 @@
 clear all
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+% load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 
 fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
 tab_sev = readtable([fileloc,'\eCRF.csv']);
 
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end';
-folder4 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder3,folder4,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 
 asdname_save = cell(704,1);
 all_severity = zeros(704,1);
@@ -32,8 +33,8 @@ map = [];
         if isfile([file_loc,file_id]) && ~isempty(severity)
             map(i)=find(strcmp(nam_save,tab_sev.id_study_id{i}));
             load(file_id)
-            adj = adj(1:12,1:12);
-            n_swipes(i) = sum(adj(:,2));
+            adj = adj(1:num,1:num);
+            n_swipes(i) = sum(adj(2,2));
             [sev_num] = severity_score(severity); 
             sets{sev_num}=[sets{sev_num},map(i)];
             all_severity(i) = sev_num;
@@ -111,7 +112,7 @@ xticklabels({'1','2','3'});
 % set(gca,'xticklabel',entries,'fontsize',10)
 
 xlabel('ASD severity')
-ylabel('No. of swipes originating in zones 2')
+ylabel('No. of swipes - zone 2 only')
 box off
 
 % num_sets=[];
@@ -130,14 +131,14 @@ for j = 1 : size(combos,1)
 end
 
 f.Position = [403,340,275,313];
-axis([0.5 3.5 -3 140])
+axis([0.5 3.5 -3 125])
 
 %% Plot significance stars
 height=133; drp = 2.5;
 % stars_line(2,height,1,2,drp) % 3 stars,h,1,2,1
-height = 135;
+height = 121;
 stars_line(3,height,1,3,drp) % 3 stars,h,1,2,1
-height = 128;
+height = 114;
 stars_line(1,height,2,3,drp) % 3 stars,h,1,2,1
 
 %%%%%%%%%%%%%% Function %%%%%%%%%%%%%%%%

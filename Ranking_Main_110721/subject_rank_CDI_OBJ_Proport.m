@@ -2,18 +2,18 @@
 clear all
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end';
-folder4 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder3,folder4,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 saved = zeros(num,704);
 
 pert_init=-.3;%-1000;%-10000;%
@@ -33,7 +33,7 @@ while min(ranked)==0
         if isfile([file_loc,file_id])
             f_num = f_num + 1;
             load(file_id)
-            adj=adj(1:12,1:12);
+            adj=adj(1:num,1:num);
             
             titlename = ['ID ',nam_save{i}];
             savename = ['subject_',nam_save{i}];
@@ -126,21 +126,21 @@ xlabel('Perturbation magnitude')
 ylabel('Difference with respect to TD %')
 % title('4 year 11 months – 6 year 0 months')
 
-%% Difference Gender
-figure;
-plot(x,zeros(1,length(x)));
-hold on
-ref=prcnt{4};i=1;
-for i = 2 : length(prcnt)
-    diff{i}=prcnt{8}-ref;
-    plot(x,diff{i})
-    hold on
-end
-legend('ONDE_F','ONDE_M')
-% ax = gca;
-% ax.XAxisLocation = 'origin';
-box off
-
-xlabel('Perturbation magnitude')
-ylabel('Difference with respect to ONDE_F %')
-% title('2 year 6 months – 3 year 8 months')
+% %% Difference Gender
+% figure;
+% plot(x,zeros(1,length(x)));
+% hold on
+% ref=prcnt{4};i=1;
+% for i = 2 : length(prcnt)
+%     diff{i}=prcnt{8}-ref;
+%     plot(x,diff{i})
+%     hold on
+% end
+% legend('ONDE_F','ONDE_M')
+% % ax = gca;
+% % ax.XAxisLocation = 'origin';
+% box off
+% 
+% xlabel('Perturbation magnitude')
+% ylabel('Difference with respect to ONDE_F %')
+% % title('2 year 6 months – 3 year 8 months')

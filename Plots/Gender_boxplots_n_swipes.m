@@ -1,6 +1,7 @@
 % load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
 load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
-load('n_swipes.mat')
+load('n_swipes_accurate.mat')
+load('subject_details.mat')
 n_swipes = n_swipes';
 
 if min(ranked)>=0   % change ranked to match pert ** NEED TO EXCLUDE 0.5s
@@ -57,25 +58,14 @@ xticklabels(entries)
 % text(1.3,-5,'TD');text(4.225,-5,'ASD');text(7.225,-5,'OND');text(10.175,-5,'ONDE')
 
 % axis([0 12 0 50])
-% hold on
-% scatter(1.32,49,'pk','filled')
-% scatter(1.5,49,'pk','filled')
-% scatter(1.68,49,'pk','filled')
-% scatter(10.5,49,'pk','filled')
-% hold on
-% height=49;
-% plot([10,11],[height-1.5,height-1.5],'k')
-% plot([10,10],[height-1.5,height-2.5],'k')
-% plot([11,11],[height-1.5,height-2.5],'k')
-% height=49;
-% plot([1,2],[height-1.5,height-1.5],'k')
-% plot([1,1],[height-1.5,height-2.5],'k')
-% plot([2,2],[height-1.5,height-2.5],'k')
+hold on 
+height = 119; n_stars = 1; drp =3;
+stars_line(n_stars,height,1,2,drp) % 2 stars,h,3,4,1
 box off
-ylabel('No. of swipes ending in zones 4-7')
+ylabel('No. of swipes - food to plate')
 xlabel('Gender')
 f.Position = [403,340,574,313];
-axis([0 12 0 125])
+axis([0 12 0 123])
 save_p = zeros(1,4);
 
 numopt = [1,5;2,6;3,7;4,8];
@@ -85,4 +75,24 @@ for j = 1 : 4
 %     pval = kruskalwallis([ranked(sets{num(1)});ranked(sets{num(2)})],len_rankeds,'off');
     pval = kruskalwallis([n_swipes(sets{num(1)});n_swipes(sets{num(2)})],len_rankeds,'off');
     save_p(1,j) = pval;
+end
+
+%%%%%%%%%% function %%%%%%%%%%%%%
+function [] = stars_line(n_stars,height,strt,nd,drp)
+    drp2 = 3.5*drp/2;
+    hold on
+    if n_stars == 3
+        scatter((nd-strt)/2+(strt-0.18),height,'pk','filled')
+        scatter((nd-strt)/2+(strt),height,'pk','filled')
+        scatter((nd-strt)/2+(strt+0.18),height,'pk','filled')
+    elseif n_stars == 2
+        scatter((nd-strt)/2+(strt-0.09),height,'pk','filled')
+        scatter((nd-strt)/2+(strt+0.09),height,'pk','filled')
+    elseif n_stars == 1
+        scatter((nd-strt)/2+(strt),height,'pk','filled')
+    end
+    hold on
+    plot([strt,nd],[height-drp,height-drp],'k')
+    plot([strt,strt],[height-drp,height-drp2],'k')
+    plot([nd,nd],[height-drp,height-drp2],'k')
 end

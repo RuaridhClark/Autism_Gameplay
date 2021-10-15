@@ -1,6 +1,6 @@
-function [sets] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved)
+function [sets,other] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved)
     sets = {[] [] [] [] []};
-
+    other = [];
     for i = 1 : size(subject_details,1)
         [I] = name_id(subject_details{i,1},nam_save);
         [J]=name_id(OND_details(:,2),subject_details{i,1});
@@ -17,7 +17,9 @@ function [sets] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,sav
                 else
                     [OND_details{J,6},OND_details{J,7}]
                     sets{4} = [sets{4},I];
+                    other = [other,{OND_details{J,6}}];
                 end
+                
             end
         end
     end

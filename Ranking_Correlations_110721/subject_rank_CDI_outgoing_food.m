@@ -1,20 +1,21 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
-addpath(folder3,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
+folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
+addpath(folder2,folder3,folder5,folder6,folder7)
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 saved = zeros(num,704);
 save_V = zeros(num,704);
 
@@ -30,7 +31,7 @@ for jj = 1:704
     if isfile([file_loc,file_id])
         f_num = f_num + 1;
         load(file_id)
-        adj = adj(1:12,1:12);
+        adj = adj(1:num,1:num);
         titlename = ['ID ',nam_save{jj}];
         savename = ['subject_',nam_save{jj}];
         R = f_num;
@@ -42,8 +43,9 @@ for jj = 1:704
         list=[list,jj];
     end
 
-    diagsA(1:12,jj)=sum(adj,2)-diag(adj);
-    n_swipes(jj) = sum(adj(:,2));%sum(adj(2,[4,5,6,7]));
+%     adj=adj-diag(diag(adj));
+%     diagsA(1:12,jj)=sum(adj,2)-diag(adj);
+    n_swipes(jj) = sum(adj(2,2));%sum(adj(2,[4,5,6,7]));
 end
 
 load('subject_details.mat')
@@ -107,20 +109,20 @@ end
 xticklabels({'TD','ASD','OND*','ONDE'});
 % set(gca,'xticklabel',entries,'fontsize',10)
 
-ylabel('No. of swipes originating in zone 2')
-axis([0.5 4.5 0 165])
+ylabel('No. of swipes contained within zone 2')
+axis([0.5 4.5 0 160])
 % % legend('TD','ASD','OND','ONDE')
 % box off
 % 
 % %%%
-height=152; n_stars = 3;
+height=138; n_stars = 3;
 stars_line(n_stars,height,1,2,1) % 3 stars,h,1,2,1
-height = 141;
-stars_line(1,height,2,3,1) % 3 stars,h,1,2,1
-height = 159; 
-stars_line(n_stars,height,2,4,1) % 2 stars,h,1,3,2
-% height = 137; n_stars = 2;
-% stars_line(1,height,3,4,1) % 2 stars,h,3,4,1
+height = 156;
+stars_line(2,height,1,3,1) % 3 stars,h,1,2,1
+height = 133; 
+stars_line(2,height,2,3,1) % 2 stars,h,1,3,2
+height = 144; n_stars = 2;
+stars_line(3,height,2,4,1) % 2 stars,h,3,4,1
 
 combos=nchoosek([1,2,3,4],2);
 save_p = zeros(3,size(combos,1));
@@ -226,6 +228,92 @@ for num = 1 : 4
         title('ONDE')
     end
 end
+
+%% OND Ranked trendline and correlation
+folder1='H:\My Documents\MATLAB\Colormaps\Colormaps';
+addpath(folder1)
+clrs=fake_parula(11);
+
+load('subject_details.mat')
+load('OND_details.mat')
+[months] = list_AGE(subject_details_776,nam_save,saved);
+[sets] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+
+if size(months,1)<size(months,2)
+    months=months';
+end
+
+exclude = find(ranked==0.5);
+exclude = [exclude;find(months>75)];
+for i = 1 : length(sets)
+    rmv=find(ismember(sets{i},exclude')==1);
+    sets{i}(rmv)=[];
+end
+
+
+figure;
+for num = 1 : 4
+    
+%     f=fit(months(sets{num}),ranked(sets{num}),'poly1');
+%     plot(f,months(sets{num}),ranked(sets{num}),'x')
+    
+    x=months(sets{num});
+    y=n_swipes(sets{num})';
+    [pf,S] = polyfit(x,y,2);
+    % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
+    [y_fit,delta] = polyval(pf,x,S);
+    % Plot the original data, linear fit, and 95% prediction interval y±2?.
+    [~,Ind]=sort(x,'asc');
+    [R,p] = corr(x,y,'Type','Kendall');
+    if p<0.01
+        linetype='-';
+    elseif p<0.05
+        linetype='--';
+    else
+        linetype=':';
+    end
+    if num == 1
+        clr = clrs((num-1)*2+num,:);
+        mrkr = 's';
+    elseif num == 2
+        clr = clrs((num-1)*2+num,:);
+        mrkr = 'o';
+    elseif num == 3
+        clr = clrs((num-1)*2+num,:);
+        mrkr = 'p';
+    elseif num == 4
+        clr = clrs((num-1)*2+num,:);
+        mrkr = 'd';
+    end
+    tempclr=[.5 .5 .5]; 
+%     scatplot=plot(x(Ind),y(Ind),mrkr,'color',clr,'linewidth',1);
+    scatplot=scatter(x(Ind),y(Ind),55,mrkr,'MarkerFaceColor',clr,'MarkerEdgeColor',clr); 
+    % Set property MarkerFaceAlpha and MarkerEdgeAlpha to <1.0
+    scatplot.MarkerFaceAlpha = .3;
+%     scatplot.MarkerEdgeAlpha = 0;
+
+    hold on
+    plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+
+%     [rho,pval] = corr(months(sets{num}),ranked(sets{num}),'Type','Kendall');
+%     text(55,mean(ranked(sets{num})),['p_{Ken,\tau} = ',num2str(p)])
+%     axis([27 73 -20 25])
+    xlabel('Age (months)')
+    ylabel('No. of swipes - food to plate')
+    legend('subject','linear fit','Location','SouthEast')
+    
+%     if num == 1
+%         title('TD')
+%     elseif num == 2
+%         title('ASD')
+%     elseif num == 3
+%         title('OND')
+%     elseif num == 4
+%         title('ONDE')
+%     end
+end
+% legend('ADHD','Down Syndrome','Language delay/disorder','Other')
+legend('ADHD','','Down Syndrome','','Language','delay/disorder','Other','')
 
 %%%%%%%%%%%%%% Functions %%%%%%%%%%%%%%%%%%%
 function [] = stars_line(n_stars,height,strt,nd,age)

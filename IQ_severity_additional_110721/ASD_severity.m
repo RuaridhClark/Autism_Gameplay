@@ -1,17 +1,17 @@
 clear all % score = tab_sev.additional_patient_data__mood(i);
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
 % load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
 
 fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
 tab_sev = readtable([fileloc,'\eCRF.csv']);
 
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end';
-folder4 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder3,folder4,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
@@ -113,7 +113,7 @@ end
 xticklabels({'1','2','3'});
 % set(gca,'xticklabel',entries,'fontsize',10)
 
-ylabel('Perturbation threshold (swipe volume)')
+ylabel('Perturbation threshold (proportion + swipe volume)')
 xlabel('ASD severity')
 box off
 
@@ -137,10 +137,10 @@ axis([0.5 3.5 -31 35])
 % axis([0.5 3.5 -0.3 .36])
 
 %% Plot significance stars
-height=30; n_stars = 1; drp = 1.75;
+height=29; n_stars = 1; drp = 1.5;
 stars_line(n_stars,height,1,2,drp) % 3 stars,h,1,2,1
-height = 34;
-stars_line(2,height,1,3,drp) % 3 stars,h,1,2,1
+height = 33;
+stars_line(n_stars,height,1,3,drp) % 3 stars,h,1,2,1
 % height=.28; n_stars = 1; drp = .0175;
 % stars_line(n_stars,height,1,2,drp) % 3 stars,h,1,2,1
 % height = .32;

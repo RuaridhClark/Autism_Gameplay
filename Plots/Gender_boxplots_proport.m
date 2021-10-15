@@ -1,4 +1,4 @@
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
 % load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 % load('n_swipes.mat')
 % n_swipes = n_swipes';
@@ -56,12 +56,14 @@ xticklabels(entries)
 
 % text(1.3,-5,'TD');text(4.225,-5,'ASD');text(7.225,-5,'OND');text(10.175,-5,'ONDE')
 
-axis([0 12 -.3 .3])%axis([0 12 0 50])
+axis([0 12 -.31 .3])%axis([0 12 0 50])
 
 %% Plot significance stars
 height=0.29; n_stars = 3; drp = .0175;
 stars_line(n_stars,height,1,2,drp) % 3 stars,h,1,2,1
 height = .29; n_stars = 1;
+stars_line(n_stars,height,4,5,drp) % 2 stars,h,3,4,1
+height = .29; n_stars = 2;
 stars_line(n_stars,height,10,11,drp) % 2 stars,h,3,4,1
 
 % legend('TD','ASD','OND*','ONDE','Orientation','horizontal')

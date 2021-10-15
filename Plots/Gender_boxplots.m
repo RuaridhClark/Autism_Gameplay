@@ -1,6 +1,6 @@
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
 
-if min(ranked)>=0   % change ranked to match pert ** NEED TO EXCLUDE 0.5s
+if min(ranked)>=0   % change ranked to match pert 
     ranked = (ranked-1)*pert_chng+pert_init;
 end
 
@@ -59,11 +59,13 @@ xticklabels(entries)
 
 % text(1.3,-5,'TD');text(4.225,-5,'ASD');text(7.225,-5,'OND');text(10.175,-5,'ONDE')
 
-axis([0 12 -30 35])
+axis([0 12 -31 31])
 
 %% Plot significance stars
-height=33; n_stars = 1; drp = 1.75;
+height=30; n_stars = 2; drp = 1.75;
 stars_line(n_stars,height,1,2,drp) % 3 stars,h,1,2,1
+height=30; n_stars = 1; drp = 1.75;
+stars_line(n_stars,height,10,11,drp) % 3 stars,h,1,2,1
 box off
 ylabel('Perturbation threshold (proportion + swipe volume)')
 f.Position = [403,340,574,313];

@@ -1,22 +1,22 @@
 clear all
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
 % load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 
 fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
 tab_sev = readtable([fileloc,'\eCRF.csv']);
 
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end';
-folder4 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder3,folder4,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 
 asdname_save = cell(704,1);
 all_severity = zeros(704,1);
@@ -113,9 +113,9 @@ box off
 % end
 
 %% Plot significance stars
-height=0.29; n_stars = 1; drp = .0175;
+height=0.28; n_stars = 1; drp = .015;
 stars_line(n_stars,height,1,2,drp) % 3 stars,h,1,2,1
-height = .335;
+height = .325;
 stars_line(n_stars,height,1,3,drp) % 3 stars,h,1,2,1
 
 combos=nchoosek([1,2,3],2);
@@ -128,7 +128,7 @@ for j = 1 : size(combos,1)
 end
 
 f.Position = [403,340,275,313];
-axis([0.5 3.5 -.31 .35])
+axis([0.5 3.5 -.31 .34])
 
 %%%%%%%%%%%%%% Function %%%%%%%%%%%%%%%%
 function [sev_num,sets] = severity_score(severity,m,sets)

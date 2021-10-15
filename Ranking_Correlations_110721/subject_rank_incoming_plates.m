@@ -1,21 +1,20 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-    load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_secondhalf.mat')
-% load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+% load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
-folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end_secondhalf';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
+folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder2,folder3,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end_secondhalf\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
-load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 saved = zeros(num,704);
 save_V = zeros(num,704);
 
@@ -31,7 +30,7 @@ for jj = 1:704
     if isfile([file_loc,file_id])
         f_num = f_num + 1;
         load(file_id)
-        adj=adj(1:12,1:12);
+        adj=adj(1:num,1:num);
         titlename = ['ID ',nam_save{jj}];
         savename = ['subject_',nam_save{jj}];
         R = f_num;
@@ -44,13 +43,13 @@ for jj = 1:704
     end
 
     
-    n_swipes(jj) = sum(adj(2,[4,5,6,7]));
+    n_swipes(jj) = sum(adj(2,[13,14,15,16]));%[4,5,6,7]));
     adj=adj-diag(diag(adj));
-    diagsA(1:12,jj)=adj(2,:);%sum(adj,1);
+%     diagsA(1:12,jj)=adj(2,:);%sum(adj,1);
 end
 
-val = sum(diagsA(4:7,:));
-% diagsA(4:7,:)=val.*ones(4,704);
+% val = sum(diagsA(4:7,:));
+% % diagsA(4:7,:)=val.*ones(4,704);
 
 %% Setup 
 load('subject_details.mat')
@@ -122,13 +121,15 @@ ylabel('No. of swipes ending in zones 4--7')
 % box off
 % 
 % %%%
-height=145; n_stars = 3;
+n_stars = 3;
+height=140;%145; 
 stars_line(n_stars,height,1,2,1) % 3 stars,h,1,2,1
-height = 133;
+height = 128;%133;
 stars_line(n_stars,height,1,3,1) % 3 stars,h,1,2,1
-height = 152; 
+height = 147;%152; 
 stars_line(n_stars,height,2,4,1) % 2 stars,h,1,3,2
-height = 127; n_stars = 2;
+n_stars = 2;
+height = 122;%127; 
 stars_line(n_stars,height,3,4,1) % 2 stars,h,3,4,1
 
 combos=nchoosek([1,2,3,4],2);
@@ -144,13 +145,13 @@ sets{3}=curr_set(ismember(curr_set,keep));
 for j = 1 : size(combos,1)
     num = combos(j,:);
     len_rankeds = [ones(1,length(sets{num(1)})),2*ones(1,length(sets{num(2)}))];
-    pval = kruskalwallis([val(sets{num(1)}),val(sets{num(2)})],len_rankeds,'off');
+    pval = kruskalwallis([n_swipes(sets{num(1)}),n_swipes(sets{num(2)})],len_rankeds,'off');
     save_p(1,j) = pval;
 end
 
 
 % legend('TD','ASD','OND*','ONDE','Orientation','horizontal')
-axis([0.5 4.5 -3 155])
+axis([0.5 4.5 -3 150])%axis([0.5 4.5 -3 155])
 f.Position = [403,340,300,313];
 box off
 
@@ -172,7 +173,7 @@ for num = 1 : 4
 %     plot(f,months(sets{num}),ranked(sets{num}),'x')
     
     x=months(sets{num});
-    y=val(sets{num})';
+    y=n_swipes(sets{num})';
     [pf,S] = polyfit(x,y,2);
     % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
     [y_fit,delta] = polyval(pf,x,S);
@@ -207,9 +208,9 @@ for num = 1 : 4
 %     [rho,pval] = corr(months(sets{num}),ranked(sets{num}),'Type','Kendall');
 %     text(55,mean(diagsA(5,sets{num})),['p_{Ken,\tau} = ',num2str(p)])
     text(0.05,.95,['p_{Ken,\tau} = ',num2str(p)],'Units','normalized')
-    axis([27 73 0 125])
+    axis([27 73 0 110])%axis([27 73 0 125])
     xlabel('Age (months)')
-    ylabel('No. of swipes ending in zones 4–7')
+    ylabel('No. of swipes - food to plate')
     legend('subject','2nd order fit','Location','SouthEast')
     
     if num == 1
@@ -217,7 +218,7 @@ for num = 1 : 4
     elseif num == 2
         title('ASD')
     elseif num == 3
-        title('OND')
+        title('OND*')
     elseif num == 4
         title('ONDE')
     end
@@ -231,7 +232,7 @@ clrs=fake_parula(11);
 load('subject_details.mat')
 load('OND_details.mat')
 [months] = list_AGE(subject_details_776,nam_save,saved);
-[sets] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+[sets,other] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
 
 if size(months,1)<size(months,2)
     months=months';
@@ -242,6 +243,9 @@ exclude = [exclude;find(months>75)];
 for i = 1 : length(sets)
     rmv=find(ismember(sets{i},exclude')==1);
     sets{i}(rmv)=[];
+    if i == 4
+        other(rmv)=[];
+    end
 end
 
 
@@ -293,7 +297,7 @@ for num = 1 : 4
 %     text(55,mean(ranked(sets{num})),['p_{Ken,\tau} = ',num2str(p)])
 %     axis([27 73 -20 25])
     xlabel('Age (months)')
-    ylabel('Pertubation threshold')
+    ylabel('No. of swipes - food to plate')
     legend('subject','linear fit','Location','SouthEast')
     
 %     if num == 1

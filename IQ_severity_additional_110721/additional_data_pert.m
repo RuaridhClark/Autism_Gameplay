@@ -1,25 +1,33 @@
 clear all
-option = 1;
+folder1='H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\';
+num=16;
+addpath(folder1,folder2)
+option = 2;
 for kk = 1 : 6
     if option == 1
-        load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+%         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
     elseif option == 2
-        load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
+%         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
+        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
     end
+    file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
+    
     fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
     tab_sev = readtable([fileloc,'\eCRF.csv']);
     
     %% load start
     sets = cell(5,1);
     map = [];
-    subj_grp = 'TD';
+    subj_grp = 'ASD';
     for i = 1:height(tab_sev)
         file_id = ['subject_',tab_sev.id_study_id{i},'.mat'];
         [score,type] = score_choice(kk,i,tab_sev);
         if isfile([file_loc,file_id]) && ~isempty(score) && strcmp(tab_sev.diagnosis_category{i},subj_grp)
             map(i)=find(strcmp(nam_save,tab_sev.id_study_id{i}));
             load([file_loc,file_id])
-            adj = adj(1:12,1:12);
+            adj = adj(1:num,1:num);
             n_swipes(i) = sum(adj(2,[4,5,6,7]));
             [score,sets] = data_score(score,map(i),sets);
             asdname_save{i} = tab_sev.id_study_id{i};
@@ -124,9 +132,9 @@ for kk = 1 : 6
     [pval,tbl,stats] = anova1([ranked(sets{1});ranked(sets{2});ranked(sets{3});ranked(sets{4});ranked(sets{5})],len_rankeds,'off');
     save_p = pval;
     
-%     if min(save_p)>0.05
-%         close gcf
-%     else
+    if min(save_p)>0.05
+        close gcf
+    else
         type
         save_p
         if pval<0.001
@@ -138,7 +146,7 @@ for kk = 1 : 6
         end
             xlabel([type,' score'])
             title(subj_grp)
-%     end
+    end
     
 end
 

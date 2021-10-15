@@ -1,22 +1,28 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
-% load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+option = 2; % 1 == proportional, 2 == proportion + swipe volume
+if option == 1
+    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
+%     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
+elseif option == 2
+    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+%     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+end
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
-folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end';
-folder4 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
-folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj';
-folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
-addpath(folder2,folder3,folder4,folder5,folder6,folder7)
+% folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
+addpath(folder3,folder4,folder5,folder6,folder7)
 file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 saved = zeros(num,704);
 save_V = zeros(num,704);
 
@@ -26,7 +32,7 @@ round=0;
 % while min(ranked)==0
     round = round+1;
     f_num = 0;
-    pert=10%pert+pert_chng;
+    pert=0%
     for i = 1:704
         skip=1;
         file_id = ['subject_',nam_save{i},'.mat'];
@@ -34,7 +40,27 @@ round=0;
         if isfile([file_loc,file_id])
             f_num = f_num + 1;
             load(file_id)
-            adj=adj(1:12,1:12);
+            tadj=adj;
+            for xi = 1:num
+                if xi>7 && xi<13
+                    nxi=xi+4;
+                elseif xi>12
+                    nxi=xi-5;
+                else
+                    nxi=xi;
+                end
+                for yi = 1:num
+                    if yi>7 && yi<13
+                        nyi=yi+4;
+                    elseif yi>12
+                        nyi=yi-5;
+                    else
+                        nyi=yi;
+                    end
+                    adj(nxi,nyi)=tadj(xi,yi);
+                end
+            end
+            adj=adj(1:num,1:num);
             titlename = ['ID ',nam_save{i}];
             savename = ['subject_',nam_save{i}];
             R = f_num;
@@ -165,7 +191,7 @@ sets{3}=curr_set(ismember(curr_set,keep));
 
 %% Group trend plot
 f=figure;
-list = [1,2,3,4,5,6,7,8,9,10,11,12];
+list = [1,2,3,4,5,6,7,8,9,10,11];%,12,13,14,15,16];
 % list=1:16;
 xtick_list=[];
 for i = 1:length(list)

@@ -1,19 +1,23 @@
 clear all
+option = 1;
 for s = 1 : 11
-    
-    load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
-%     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
-
+    if option == 1
+%         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
+        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+    elseif option == 2
+%         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
+        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
+    end
     fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
     tab_sev = readtable([fileloc,'\eCRF.csv']);
 
     % folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs\adj_obj_end';
-    folder4 = 'H:\My Documents\MATLAB\Autism_MAIN\Set_allocate';
+    folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
     % folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-    folder6 = 'H:\My Documents\MATLAB\Autism_MAIN\Create_adj_110721';
-    folder7 = 'H:\My Documents\MATLAB\Autism_MAIN';
+    folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+    folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
     addpath(folder4,folder6,folder7)% addpath(folder3,folder4,folder5,folder6,folder7)
-    file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs_110721\adj_obj_end\'; % should match zone type
+    file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end\'; % should match zone type
 
     load('swipes_all704.mat','nam_save')
 
@@ -25,7 +29,7 @@ for s = 1 : 11
     iqs=[];
     val=[];
     rmv_m=[];
-    subj_grp = 'ASD';
+%     subj_grp = 'ASD';
 
 
     [all_scores,titlename] = iq_test(s,tab_sev);
@@ -117,8 +121,8 @@ for s = 1 : 11
         months=months';
     end
     
-    pert_init=-0.3;
-    pert_chng = 0.01;
+%     pert_init=-0.3;
+%     pert_chng = 0.01;
     if min(ranked)>=0   % change ranked to match pert ** NEED TO EXCLUDE 0.5s
         ranked = (ranked-1)*pert_chng+pert_init;
     end
@@ -225,9 +229,9 @@ for s = 1 : 11
         legend('subject','2nd order fit','Location','SouthEast')
 
         title(titlename)
-%         if p>0.05
-%             close gcf
-%         end
+        if p>0.05
+            close gcf
+        end
     end
 end
 %%%%%%%%% functions %%%%%%%%%%%%%%
