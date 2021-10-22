@@ -16,7 +16,7 @@ file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accur
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad objects (nodes)
+num =16;    % number of ipad objects (nodes)
 
 asdname_save = cell(704,1);
 all_severity = zeros(704,1);

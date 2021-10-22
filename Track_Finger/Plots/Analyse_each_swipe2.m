@@ -11,7 +11,7 @@ yl = 768;
 obj(1,1:4)=[19, 227, yl-752, yl-525];
 obj(2,1:4)=[234, 774, yl-678, yl-525];
 obj(3,1:4)=[781, 1004, yl-752, yl-525];
-obj(4,1:4)=[101, 101+131, yl-400-96, yl-400]; 
+obj(4,1:4)=[101, 101+131, yl-400-96, yl-350]; 
 obj(5,1:4)=[325,325+131, yl-400-96, yl-400];   
 obj(6,1:4)=[551, 551+131, yl-400-96, yl-400];  
 obj(7,1:4)=[776, 776+131, yl-400-96, yl-400];   
@@ -25,7 +25,7 @@ obj(14,1:4)=[311, 531, yl-523, yl-196];
 obj(15,1:4)=[533,753, yl-523, yl-196];
 obj(16,1:4)=[755, 1004, yl-523, yl-264];
 
-for i = 1:704   % 704 participants
+for i = 402%:704   % 704 participants
 %     i=705-j;
     close all
     swipe=swipe_save{i};
@@ -40,28 +40,30 @@ for i = 1:704   % 704 participants
         cat = subject_details_776{idx,5};
         
         figure
-        for i = 1 : 16
+        for ii = 1 : 16
             hold on
-            scatter(obj(i,1),obj(i,3),'+')
+%             scatter(obj(i,1),obj(i,3),'+')
             hold on
-            scatter(obj(i,2),obj(i,4),'+')
+%             scatter(obj(i,2),obj(i,4),'+')
             hold on
-            scatter(obj(i,1),obj(i,4),'+')
+%             scatter(obj(i,1),obj(i,4),'+')
             hold on
-            scatter(obj(i,2),obj(i,3),'+')
-            plot([obj(i,1),obj(i,2)],[obj(i,3),obj(i,3)],'b')
-            plot([obj(i,1),obj(i,2)],[obj(i,4),obj(i,4)],'b')
-            plot([obj(i,1),obj(i,1)],[obj(i,3),obj(i,4)],'b')
-            plot([obj(i,2),obj(i,2)],[obj(i,3),obj(i,4)],'b')
+%             scatter(obj(i,2),obj(i,3),'+')
+            plot([obj(ii,1),obj(ii,2)],[obj(ii,3),obj(ii,3)],'k')
+            plot([obj(ii,1),obj(ii,2)],[obj(ii,4),obj(ii,4)],'k')
+            plot([obj(ii,1),obj(ii,1)],[obj(ii,3),obj(ii,4)],'k')
+            plot([obj(ii,2),obj(ii,2)],[obj(ii,3),obj(ii,4)],'k')
         end
         axis([0 1100 0 800])
-        if strcmp(cat,'TD')
-            colr = 'b';
-            title(['TD ',nam_save{i}])
+%         if strcmp(cat,'TD')
+%             colr = 'b';
+%             sname = ['TD ',nam_save{i}];
+%             title(sname)
 %         else
-%         if strcmp(cat,'ASD')
-%             colr = 'r';
-%             title(['ASD ',nam_save{i}])
+        if strcmp(cat,'ASD')
+            colr = 'g';
+            sname = ['ASD ',nam_save{i}];
+            title(sname)
 %         end
             
             titlename = ['ID ',nam_save{i}];
@@ -88,8 +90,10 @@ for i = 1:704   % 704 participants
 
                 hold on
                 plot(tab.X(k),tab.Y(k),colr)
-                pause(0.1)
+                pause(.10)
             end
+            axis off
+            saveas(gcf,['Accurate_pngs/',sname,'.png'])
         end
     end
     

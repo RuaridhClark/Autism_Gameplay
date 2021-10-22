@@ -1,7 +1,7 @@
 % close all
 % clear all
 file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\Files\segmented_by_SCL\';
-load('H:\My Documents\MATLAB\Autism_MAIN\Create_adj\swipes_all704.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721\swipes_all704.mat')
 % load('swipe_save.mat')
 
 lista = [1,4,7,8,9,12,13,14,16,20,22,24,26,28,32,36];
@@ -34,16 +34,16 @@ for i = 1:82
 %         else
 %             skip = 1;
 %         end
-    elseif isfile([file_loc,TD_id])
-        m=m+1;
-%         if ismember(m,listb)
-            colr = [0, 0.4470, 0.7410];
-            titlename = ['ID ',ntext,num2str(i),' - TD'];
-            filename = [file_loc,TD_id];
-            savename = ['TD_subject',ntext,num2str(i)];
-%         else
-%             skip = 1;
-%         end
+%     elseif isfile([file_loc,TD_id])
+%         m=m+1;
+% %         if ismember(m,listb)
+%             colr = [0, 0.4470, 0.7410];
+%             titlename = ['ID ',ntext,num2str(i),' - TD'];
+%             filename = [file_loc,TD_id];
+%             savename = ['TD_subject',ntext,num2str(i)];
+% %         else
+% %             skip = 1;
+% %         end
     else
         skip = 1;
     end
