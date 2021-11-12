@@ -1,6 +1,6 @@
 % % % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-option = 2; % 1 == proportional, 2 == proportion + swipe volume
+option = 1; % 1 == proportional, 2 == proportion + swipe volume
 if option == 1
     load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
@@ -57,7 +57,13 @@ if size(months,1)<size(months,2)
     months=months';
 end
 
+val = -.70;
+if option == 1
+    ranked(ranked<val)=val;
+end
+
 exclude = find(ranked==0.5);
+% exclude = [exclude;find(ranked<val)];
 exclude = [exclude;find(months>75)]; %% 75 months threshold
 % exclude = [exclude;489]; % no food-to-plate swipes recorded
 % exclude = [exclude;find(months<32)]; %% 45 Months threshold
@@ -75,10 +81,7 @@ if min(ranked)>=0   % change ranked to match pert ** NEED TO EXCLUDE 0.5s
 end
 
 for num = 1 : 3
-    figure;
-%     f=fit(months(sets{num}),ranked(sets{num}),'poly1');
-%     plot(f,months(sets{num}),ranked(sets{num}),'x')
-    
+    figure;    
     x=months(sets{num});
     y=ranked(sets{num});
     [pf,S] = polyfit(x,y,2);
@@ -87,6 +90,8 @@ for num = 1 : 3
     % Plot the original data, linear fit, and 95% prediction interval y±2?.
     [~,Ind]=sort(x,'asc');
     [R,p] = corr(x,y,'Type','Spearman');
+%     [R,PValue,H] = corrplot([x,y],'type','Kendall','testR','on');
+%     figure
     if p<0.01
         linetype='-';
     elseif p<0.05
@@ -97,7 +102,8 @@ for num = 1 : 3
     if num == 1
         clr = [.93,.69,.13];
     elseif num == 2
-        clr = [.85,.33,.1];
+%         clr = [.85,.33,.1];
+        clr = [.84,.35,.15];
     elseif num == 3
         clr = [.64,.08,.18];
     end
@@ -108,27 +114,29 @@ for num = 1 : 3
     scatplot.MarkerFaceAlpha = .3;
 %     scatplot.MarkerEdgeAlpha = 0;
     hold on
-    plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+    if p<0.05
+        plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+    end
 
     if p<0.001
-        text(0.05,.95,['p_{Ken,\tau} = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.05,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
     elseif p<0.01
-        text(0.05,.95,['p_{Ken,\tau} = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.05,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     elseif p<10%0.1
-        text(0.05,.95,['p_{Ken,\tau} = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.05,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     end
     
     if option == 1
-        axis([27 73 -.7 .3])
+        axis([27 73 -.7 .31])
     elseif option == 2
        axis([27 73 -70 30])
     end
 
     xlabel('Age (months)')
     if option == 1
-        ylabel('Pertubation threshold (proportion)')
+        ylabel('Sharing score (plates)')
     elseif option == 2
-        ylabel('Pertubation threshold (swipe volume)')
+        ylabel('Sharing score (swipe volume)')
     end
     legend('subject','2nd order fit','Location','SouthEast')
     
@@ -160,7 +168,8 @@ end
 f=figure;
 boxplot(all_sets,grps,'Notch','on')
 h = findobj(gca,'Tag','Box');
-colors = [.93,.69,.13;.85,.33,.1;.64,.08,.18;];
+% colors = [.93,.69,.13;.85,.33,.1;.64,.08,.18;];
+colors = [.93,.69,.13;.84,.35,.15;.64,.08,.18;];
 for m=1:length(h)
     temp_m = length(h)-m+1;
     mm=rem(m,5);mm(mm==0)=1;
@@ -172,13 +181,13 @@ end
 % set(gca,'xticklabel',entries,'fontsize',10)
 
 if option == 1
-    ylabel('Perturbation threshold (proportion)')
+    ylabel('Sharing score (proportion)')
 elseif option == 2
-    ylabel('Perturbation threshold (proportion + swipe volume)')
+    ylabel('Sharing score (swipe volume)')
 end
 
 if option == 1
-    axis([0.5 3.5 -.51 .39])
+    axis([0.5 3.5 -.7 .39])
 elseif option == 2
     axis([0.5 3.5 -51 39])
 end
@@ -186,23 +195,24 @@ end
 % legend('TD','ASD','OND','ONDE')
 box off
 
-% %% Plot significance stars
-% if option == 1
-%     heights = [.29,.33,.39,.29];
-%     drp = .0175;
-% elseif option == 2
-%     heights = [28,32,37,28];
-%     drp = 1.75;
-% end
-% % height=28;%0.29; 
+%% Plot significance stars
+if option == 1
+    heights = [.29,.36];
+%     heights = [.315,.38,.45];
+    drp = .0275;
+elseif option == 2
+    heights = [28,32,37];
+    drp = 1.75;
+end
+% 
 % n_stars = 3; 
 % stars_line(n_stars,heights(1),1,2,drp) % 3 stars,h,1,2,1
-% % height = 32;%.33;
-% stars_line(n_stars,heights(2),1,3,drp) % 3 stars,h,1,2,1
-% % height = 37;%.39; 
-% stars_line(n_stars,heights(3),2,4,drp) % 2 stars,h,1,3,2
-% % height = 28;%.29;
-% stars_line(n_stars,heights(4),3,4,drp) % 2 stars,h,3,4,1
+% stars_line(2,heights(2),1,3,drp) % 3 stars,h,1,2,1
+% stars_line(1,heights(3),2,3,drp) % 2 stars,h,1,3,2
+
+n_stars = 2; 
+stars_line(n_stars,heights(1),1,2,drp) % 3 stars,h,1,2,1
+stars_line(1,heights(2),1,3,drp) % 3 stars,h,1,2,1
 
 combos=nchoosek([1,2,3],2);
 save_p = zeros(1,size(combos,1));

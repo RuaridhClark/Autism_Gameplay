@@ -1,6 +1,6 @@
 % % % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-option = 2; % 1 == proportional, 2 == proportion + swipe volume
+option = 1; % 1 == proportional, 2 == proportion + swipe volume
 if option == 1
     load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
@@ -11,7 +11,7 @@ end
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto';
 folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
 folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
 folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
@@ -31,50 +31,6 @@ load('OND_details.mat')
 curr_set = sets{3};
 keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
 sets{3}=curr_set(ismember(curr_set,keep));
-%%%
-%%% Plot all
-% [prcnt,x] = plot_cmprsn4(ranked,pert_init,pert_chng,nam_save,sets);
-% % title('OBJ')
-% % title('2 year 6 months – 3 year 8 months')%('3 year 9 months – 4 year 10 months')%('4 year 11 months – 6 year 0 months')
-
-% %% Difference All
-% figure;
-% plot(x,zeros(1,length(x)),'-o','LineWidth',1.5,'MarkerSize',5);
-% hold on
-% ref=prcnt{1};
-% for i = 2 : length(prcnt)
-%     diff{i}=prcnt{i}-ref;
-%     plot(x,diff{i},'-o','LineWidth',1.5,'MarkerSize',5)
-%     hold on
-% end
-% legend('TD','ASD','OND*','ONDE','Location','SouthWest')
-% % ax = gca;
-% % ax.XAxisLocation = 'origin';
-% box off
-% % 
-% xlabel('Perturbation Threshold (proportion)')
-% ylabel('Difference with respect to TD %')
-% % % title('4 year 11 months – 6 year 0 months')
-
-% % %% Difference Gender
-% figure;
-% plot(x,zeros(1,length(x)));
-% hold on
-% ref=prcnt{4};i=1;
-% % for i = 2 : length(prcnt)
-%     diff{i}=prcnt{8}-ref;
-%     plot(x,diff{i})
-% %     hold on
-% % end
-% legend('ONDE_F','ONDE_M')
-% % ax = gca;
-% % ax.XAxisLocation = 'origin';
-% box off
-% 
-% xlabel('Perturbation magnitude')
-% ylabel('Difference with respect to ONDE_F %')
-% % title('2 year 6 months – 3 year 8 months')
-% 
 
 %% Correlation
 load('diags_incoming.mat')
@@ -85,6 +41,10 @@ load('subject_details.mat')
 
 if size(months,1)<size(months,2)
     months=months';
+end
+
+if option == 1
+    ranked(ranked<-.7)=-.7;
 end
 
 exclude = find(ranked==0.5);
@@ -106,8 +66,6 @@ end
 
 for num = 1 : 4
     figure;
-%     f=fit(months(sets{num}),ranked(sets{num}),'poly1');
-%     plot(f,months(sets{num}),ranked(sets{num}),'x')
     
     x=months(sets{num});
     y=ranked(sets{num});
@@ -140,29 +98,31 @@ for num = 1 : 4
     scatplot.MarkerFaceAlpha = .3;
 %     scatplot.MarkerEdgeAlpha = 0;
     hold on
-    plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
-
+    if p<0.05
+        plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+    end
 %     [rho,pval] = corr(months(sets{num}),ranked(sets{num}),'Type','Kendall');
 %     text(55,mean(ranked(sets{num})),['p_{Ken,\tau} = ',num2str(p)])
     if p<0.001
-        text(0.05,.95,['p_{Ken,\tau} = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.95,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
     elseif p<0.01
-        text(0.05,.95,['p_{Ken,\tau} = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     elseif p<10%0.1
-        text(0.05,.95,['p_{Ken,\tau} = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     end
     
     if option == 1
-        axis([27 73 -.5 .3])
+        axis([27 73 -.7 .3])
+%         axis([27 73 -1.5 .31])
     elseif option == 2
-       axis([27 73 -50 30])
+       axis([27 73 -65 25])
     end
 
     xlabel('Age (months)')
     if option == 1
-        ylabel('Pertubation threshold (proportion)')
+        ylabel('Sharing score ({\it{snap-to-target}})')
     elseif option == 2
-        ylabel('Pertubation threshold (swipe volume)')
+        ylabel('Sharing score (swipe volume)')
     end
     legend('subject','2nd order fit','Location','SouthEast')
     
@@ -303,15 +263,15 @@ xticklabels({'TD','ASD','OND*','ONDE'});
 % set(gca,'xticklabel',entries,'fontsize',10)
 
 if option == 1
-    ylabel('Perturbation threshold (proportion)')
+    ylabel('Sharing score (proportion)')
 elseif option == 2
-    ylabel('Perturbation threshold (proportion + swipe volume)')
+    ylabel('Sharing score (swipe volume)')
 end
 
 if option == 1
-    axis([0.5 4.5 -.51 .39])
+    axis([0.5 4.5 -.71 .45])
 elseif option == 2
-    axis([0.5 4.5 -51 39])
+    axis([0.5 4.5 -65 39])
 end
 
 % legend('TD','ASD','OND','ONDE')
@@ -319,20 +279,18 @@ box off
 
 %% Plot significance stars
 if option == 1
-    heights = [.29,.33,.39,.29];
-    drp = .0175;
+%     heights = [.295,.345,.41,.295];
+    heights = [.41,.345,.45,.31];
+    drp = .0225;
 elseif option == 2
     heights = [28,32,37,28];
     drp = 1.75;
 end
-% height=28;%0.29; 
+
 n_stars = 3; 
 stars_line(n_stars,heights(1),1,2,drp) % 3 stars,h,1,2,1
-% height = 32;%.33;
 stars_line(n_stars,heights(2),1,3,drp) % 3 stars,h,1,2,1
-% height = 37;%.39; 
 stars_line(n_stars,heights(3),2,4,drp) % 2 stars,h,1,3,2
-% height = 28;%.29;
 stars_line(n_stars,heights(4),3,4,drp) % 2 stars,h,3,4,1
 
 combos=nchoosek([1,2,3,4],2);

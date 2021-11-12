@@ -4,7 +4,7 @@ folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\';
 addpath(folder1,folder2)
 for kk = 1 : 6
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
     num=16;
     file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
     floc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
@@ -20,6 +20,9 @@ for kk = 1 : 6
         if isfile([file_loc,file_id]) && ~isempty(score) && strcmp(tab_sev.diagnosis_category{i},subj_grp)
             map(i)=find(strcmp(nam_save,tab_sev.id_study_id{i}));
             load([file_loc,file_id])
+            if num == 12
+                [adj] = adj_snap2zones(adj,num);
+            end
             adj = adj(1:num,1:num);
             n_swipes(i) = sum(adj(2,[4,5,6,7]));
             [score,sets] = data_score(score,map(i),sets);
@@ -103,7 +106,7 @@ for kk = 1 : 6
     xticklabels({'1','2','3','4','5'});
     % set(gca,'xticklabel',entries,'fontsize',10)
 
-    ylabel('No. of swipes - food to plate')
+    ylabel('No. of swipes - food to plates')
     box off
 
     num_sets=[];
@@ -191,6 +194,26 @@ function [score,type] = score_choice(k,i,tab_sev)
         score = tab_sev.recording_day_data__distractibility(i);
         type = 'distractability';
     end
-        
+end
 
+
+function [adj] = adj_snap2zones(adj,num)
+    for it = 1:num
+        adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
+        adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
+        adj(it,13:16)=zeros(1,4);                     % remove non-food connections
+        adj(13:16,it)=zeros(4,1); 
+    end
+    adj = adj(1:12,1:12);
+    %% remove zn 4-7 incoming except from 2
+    allow=[2,4,5,6,7];
+    for it = 1:num
+        if ~ismember(it,allow)
+            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+        end
+    end
+    adj=adj-diag(diag(adj));
+    
+    bweight=1;
+    [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end

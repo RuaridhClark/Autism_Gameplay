@@ -1,6 +1,6 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
 % load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
@@ -30,6 +30,9 @@ for jj = 1:704
     if isfile([file_loc,file_id])
         f_num = f_num + 1;
         load(file_id)
+%         if num == 12
+%             [adj] = adj_snap2zones(adj,num);
+%         end
         adj=adj(1:num,1:num);
         titlename = ['ID ',nam_save{jj}];
         savename = ['subject_',nam_save{jj}];
@@ -43,7 +46,7 @@ for jj = 1:704
     end
 
     
-    n_swipes(jj) = sum(adj(2,[13,14,15,16]));%[4,5,6,7]));
+    n_swipes(jj) = sum(adj(2,[4,5,6,7]));%[13,14,15,16]));%
     adj=adj-diag(diag(adj));
 %     diagsA(1:12,jj)=adj(2,:);%sum(adj,1);
 end
@@ -86,7 +89,7 @@ end
 
 exclude = find(ranked==0.5);
 exclude = [exclude;find(months>75)]; %% 75 months threshold
-% exclude = [exclude;find(months<32)]; %% 45 Months threshold
+% exclude = [exclude;find(months<50)]; %% 45 Months threshold
 for i = 1 : length(sets)
     rmv=find(ismember(sets{i},exclude')==1);
     sets{i}(rmv)=[];
@@ -115,7 +118,8 @@ end
 xticklabels({'TD','ASD','OND*','ONDE'});
 % set(gca,'xticklabel',entries,'fontsize',10)
 
-ylabel('No. of swipes ending in zones 4--7')
+% ylabel('No. of swipes - food to plate')
+ylabel('No. of swipes - food to{\it snap-to-target} zone')
 % axis([0.5 4.5 0 165])
 % % legend('TD','ASD','OND','ONDE')
 % box off
@@ -128,9 +132,18 @@ height = 128;%133;
 stars_line(n_stars,height,1,3,1) % 3 stars,h,1,2,1
 height = 147;%152; 
 stars_line(n_stars,height,2,4,1) % 2 stars,h,1,3,2
-n_stars = 2;
 height = 122;%127; 
 stars_line(n_stars,height,3,4,1) % 2 stars,h,3,4,1
+
+% n_stars = 3;
+% height=142; 
+% stars_line(n_stars,height,1,2,1) % 3 stars,h,1,2,1
+% height = 133;
+% stars_line(2,height,1,3,1) % 3 stars,h,1,2,1
+% height = 148; 
+% stars_line(n_stars,height,2,4,1) % 2 stars,h,1,3,2
+% height = 128; 
+% stars_line(1,height,3,4,1) % 2 stars,h,3,4,1
 
 combos=nchoosek([1,2,3,4],2);
 save_p = zeros(3,size(combos,1));
@@ -179,7 +192,7 @@ for num = 1 : 4
     [y_fit,delta] = polyval(pf,x,S);
     % Plot the original data, linear fit, and 95% prediction interval y±2?.
     [~,Ind]=sort(x,'asc');
-    [R,p] = corr(x,y,'Type','Kendall');
+    [R,p] = corr(x,y,'Type','Spearman');
     if p<0.01
         linetype='-';
     elseif p<0.05
@@ -205,13 +218,19 @@ for num = 1 : 4
     hold on
     plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
 
-%     [rho,pval] = corr(months(sets{num}),ranked(sets{num}),'Type','Kendall');
-%     text(55,mean(diagsA(5,sets{num})),['p_{Ken,\tau} = ',num2str(p)])
-    text(0.05,.95,['p_{Ken,\tau} = ',num2str(p)],'Units','normalized')
+    if p<0.001
+        text(0.05,.95,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+    elseif p<0.01
+        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+    elseif p<10%0.1
+        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+    end
+    
     axis([27 73 0 110])%axis([27 73 0 125])
     xlabel('Age (months)')
-    ylabel('No. of swipes - food to plate')
-    legend('subject','2nd order fit','Location','SouthEast')
+    ylabel('No. of swipes - food to plates')
+%     ylabel('No. of swipes - food to {\it{snap-to-target}}')
+    legend('subject','2nd order fit','Location','NorthWest')
     
     if num == 1
         title('TD')
@@ -224,94 +243,94 @@ for num = 1 : 4
     end
 end
 
-%% OND Ranked trendline and correlation
-folder1='H:\My Documents\MATLAB\Colormaps\Colormaps';
-addpath(folder1)
-clrs=fake_parula(11);
-
-load('subject_details.mat')
-load('OND_details.mat')
-[months] = list_AGE(subject_details_776,nam_save,saved);
-[sets,other] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
-
-if size(months,1)<size(months,2)
-    months=months';
-end
-
-exclude = find(ranked==0.5);
-exclude = [exclude;find(months>75)];
-for i = 1 : length(sets)
-    rmv=find(ismember(sets{i},exclude')==1);
-    sets{i}(rmv)=[];
-    if i == 4
-        other(rmv)=[];
-    end
-end
-
-
-figure;
-for num = 1 : 4
-    
-%     f=fit(months(sets{num}),ranked(sets{num}),'poly1');
-%     plot(f,months(sets{num}),ranked(sets{num}),'x')
-    
-    x=months(sets{num});
-    y=n_swipes(sets{num})';
-    [pf,S] = polyfit(x,y,2);
-    % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
-    [y_fit,delta] = polyval(pf,x,S);
-    % Plot the original data, linear fit, and 95% prediction interval y±2?.
-    [~,Ind]=sort(x,'asc');
-    [R,p] = corr(x,y,'Type','Kendall');
-    if p<0.01
-        linetype='-';
-    elseif p<0.05
-        linetype='--';
-    else
-        linetype=':';
-    end
-    if num == 1
-        clr = clrs((num-1)*2+num,:);
-        mrkr = 's';
-    elseif num == 2
-        clr = clrs((num-1)*2+num,:);
-        mrkr = 'o';
-    elseif num == 3
-        clr = clrs((num-1)*2+num,:);
-        mrkr = 'p';
-    elseif num == 4
-        clr = clrs((num-1)*2+num,:);
-        mrkr = 'd';
-    end
-    tempclr=[.5 .5 .5]; 
-%     scatplot=plot(x(Ind),y(Ind),mrkr,'color',clr,'linewidth',1);
-    scatplot=scatter(x(Ind),y(Ind),55,mrkr,'MarkerFaceColor',clr,'MarkerEdgeColor',clr); 
-    % Set property MarkerFaceAlpha and MarkerEdgeAlpha to <1.0
-    scatplot.MarkerFaceAlpha = .3;
-%     scatplot.MarkerEdgeAlpha = 0;
-
-    hold on
-    plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
-
-%     [rho,pval] = corr(months(sets{num}),ranked(sets{num}),'Type','Kendall');
-%     text(55,mean(ranked(sets{num})),['p_{Ken,\tau} = ',num2str(p)])
-%     axis([27 73 -20 25])
-    xlabel('Age (months)')
-    ylabel('No. of swipes - food to plate')
-    legend('subject','linear fit','Location','SouthEast')
-    
-%     if num == 1
-%         title('TD')
-%     elseif num == 2
-%         title('ASD')
-%     elseif num == 3
-%         title('OND')
-%     elseif num == 4
-%         title('ONDE')
+% %% OND Ranked trendline and correlation
+% folder1='H:\My Documents\MATLAB\Colormaps\Colormaps';
+% addpath(folder1)
+% clrs=fake_parula(11);
+% 
+% load('subject_details.mat')
+% load('OND_details.mat')
+% [months] = list_AGE(subject_details_776,nam_save,saved);
+% [sets,other] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+% 
+% if size(months,1)<size(months,2)
+%     months=months';
+% end
+% 
+% exclude = find(ranked==0.5);
+% exclude = [exclude;find(months>75)];
+% for i = 1 : length(sets)
+%     rmv=find(ismember(sets{i},exclude')==1);
+%     sets{i}(rmv)=[];
+%     if i == 4
+%         other(rmv)=[];
 %     end
-end
-% legend('ADHD','Down Syndrome','Language delay/disorder','Other')
-legend('ADHD','','Down Syndrome','','Language','delay/disorder','Other','')
+% end
+% 
+% 
+% figure;
+% for num = 1 : 4
+%     
+% %     f=fit(months(sets{num}),ranked(sets{num}),'poly1');
+% %     plot(f,months(sets{num}),ranked(sets{num}),'x')
+%     
+%     x=months(sets{num});
+%     y=n_swipes(sets{num})';
+%     [pf,S] = polyfit(x,y,2);
+%     % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
+%     [y_fit,delta] = polyval(pf,x,S);
+%     % Plot the original data, linear fit, and 95% prediction interval y±2?.
+%     [~,Ind]=sort(x,'asc');
+%     [R,p] = corr(x,y,'Type','Kendall');
+%     if p<0.01
+%         linetype='-';
+%     elseif p<0.05
+%         linetype='--';
+%     else
+%         linetype=':';
+%     end
+%     if num == 1
+%         clr = clrs((num-1)*2+num,:);
+%         mrkr = 's';
+%     elseif num == 2
+%         clr = clrs((num-1)*2+num,:);
+%         mrkr = 'o';
+%     elseif num == 3
+%         clr = clrs((num-1)*2+num,:);
+%         mrkr = 'p';
+%     elseif num == 4
+%         clr = clrs((num-1)*2+num,:);
+%         mrkr = 'd';
+%     end
+%     tempclr=[.5 .5 .5]; 
+% %     scatplot=plot(x(Ind),y(Ind),mrkr,'color',clr,'linewidth',1);
+%     scatplot=scatter(x(Ind),y(Ind),55,mrkr,'MarkerFaceColor',clr,'MarkerEdgeColor',clr); 
+%     % Set property MarkerFaceAlpha and MarkerEdgeAlpha to <1.0
+%     scatplot.MarkerFaceAlpha = .3;
+% %     scatplot.MarkerEdgeAlpha = 0;
+% 
+%     hold on
+%     plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+% 
+% %     [rho,pval] = corr(months(sets{num}),ranked(sets{num}),'Type','Kendall');
+% %     text(55,mean(ranked(sets{num})),['p_{Ken,\tau} = ',num2str(p)])
+% %     axis([27 73 -20 25])
+%     xlabel('Age (months)')
+%     ylabel('No. of swipes - food to plate')
+%     legend('subject','linear fit','Location','SouthEast')
+%     
+% %     if num == 1
+% %         title('TD')
+% %     elseif num == 2
+% %         title('ASD')
+% %     elseif num == 3
+% %         title('OND')
+% %     elseif num == 4
+% %         title('ONDE')
+% %     end
+% end
+% % legend('ADHD','Down Syndrome','Language delay/disorder','Other')
+% legend('ADHD','','Down Syndrome','','Language','delay/disorder','Other','')
 
 %% Boxplot age - Food as an Origin
 load('subject_details.mat')
@@ -339,7 +358,7 @@ end
 
 %%%%%%%%%%%%%% Functions %%%%%%%%%%%%%%%%%%%
 function [] = stars_line(n_stars,height,strt,nd,age)
-    drp = 5; drp2 = 8;
+    drp = 3; drp2 = 3.5*drp/2;
     hold on
     if n_stars == 3
         scatter((age-1)*5+(nd-strt)/2+(strt-0.18),height,'pk','filled')
@@ -355,4 +374,25 @@ function [] = stars_line(n_stars,height,strt,nd,age)
     plot([(age-1)*5+strt,(age-1)*5+nd],[height-drp,height-drp],'k')
     plot([(age-1)*5+strt,(age-1)*5+strt],[height-drp,height-drp2],'k')
     plot([(age-1)*5+nd,(age-1)*5+nd],[height-drp,height-drp2],'k')
+end
+
+function [adj] = adj_snap2zones(adj,num)
+    for it = 1:num
+        adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
+        adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
+        adj(it,13:16)=zeros(1,4);                     % remove non-food connections
+        adj(13:16,it)=zeros(4,1); 
+    end
+    adj = adj(1:12,1:12);
+    %% remove zn 4-7 incoming except from 2
+    allow=[2,4,5,6,7];
+    for it = 1:num
+        if ~ismember(it,allow)
+            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+        end
+    end
+    adj=adj-diag(diag(adj));
+    
+    bweight=1;
+    [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end

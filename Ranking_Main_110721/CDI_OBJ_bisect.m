@@ -13,13 +13,13 @@ file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accur
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =16;    % number of ipad zones (nodes)
+num =12;    % number of ipad zones (nodes)
 pert_init=-80;
 
 saved = zeros(num,704);
 ranked = zeros(704,1);
 
-for i = 1:704
+for i = 428:704
     file_id = ['subject_',nam_save{i},'.mat'];
 
     if isfile([file_loc,file_id])
@@ -27,7 +27,11 @@ for i = 1:704
         titlename = ['ID ',nam_save{i}];
         savename = ['subject_',nam_save{i}];
 
-        L = adj2L(adj,num);
+        if num == 16
+            L = adj2L(adj,num);
+        elseif num == 12
+            L = adj2L_snap2zones(adj,num);
+        end
         
         list = [4,5,6,7]; check=1; 
         pert =40; prev=pert_init; tmp_pert=pert;
@@ -68,6 +72,32 @@ function [L] = adj2L(adj,num)
     for it = 1:num
         if ~ismember(it,allow)
             adj(it,13:16)=adj(it,4:7)+adj(it,13:16);    % reconnect to 13-16
+            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+        end
+    end
+    adj=adj-diag(diag(adj));
+    
+    bweight=1;
+    [adj] = NNR_adj_conns_OBJ2(adj,bweight);
+
+    L=-adj + diag(sum(adj,2));
+
+    %% convert L into adj (sort of)
+    L=L-diag(diag(L)); 
+end
+
+function [L] = adj2L_snap2zones(adj,num)
+    for it = 1:num
+        adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
+        adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
+        adj(it,13:16)=zeros(1,4);                     % remove non-food connections
+        adj(13:16,it)=zeros(4,1); 
+    end
+    adj = adj(1:12,1:12);
+    %% remove zn 4-7 incoming except from 2
+    allow=[2,4,5,6,7];
+    for it = 1:num
+        if ~ismember(it,allow)
             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end

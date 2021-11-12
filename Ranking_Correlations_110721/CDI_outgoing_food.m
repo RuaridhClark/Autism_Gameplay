@@ -1,16 +1,16 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
 folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
 folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
 folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
 folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder2,folder3,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 

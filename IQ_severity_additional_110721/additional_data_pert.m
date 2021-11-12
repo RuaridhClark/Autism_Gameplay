@@ -10,7 +10,7 @@ for kk = 1 : 6
         load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
     elseif option == 2
 %         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
-        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
+        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')
     end
     file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
     
@@ -20,7 +20,7 @@ for kk = 1 : 6
     %% load start
     sets = cell(5,1);
     map = [];
-    subj_grp = 'ASD';
+    subj_grp = 'TD';
     for i = 1:height(tab_sev)
         file_id = ['subject_',tab_sev.id_study_id{i},'.mat'];
         [score,type] = score_choice(kk,i,tab_sev);
