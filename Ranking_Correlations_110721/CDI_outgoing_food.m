@@ -1,6 +1,6 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
@@ -98,12 +98,22 @@ end
 f=figure;
 boxplot(all_sets,grps,'Notch','on')
 h = findobj(gca,'Tag','Box');
-colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
-for m=1:length(h)
-    temp_m = length(h)-m+1;
-    mm=rem(m,5);mm(mm==0)=1;
-    patch(get(h(temp_m),'XData'),get(h(temp_m),'YData'),colors(mm,:),'FaceAlpha',.5);
+% colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
+% for m=1:length(h)
+%     temp_m = length(h)-m+1;
+%     mm=rem(m,5);mm(mm==0)=1;
+%     patch(get(h(temp_m),'XData'),get(h(temp_m),'YData'),colors(mm,:),'FaceAlpha',.5);
+% end
+%% Add scatter points
+hold on
+[C,~,ic]=unique([grps],'stable');
+if strcmp(subj_grp,'TD')
+    clr = [0, 0.4470, 0.7410];
+elseif strcmp(subj_grp,'ASD')
+    clr = [0.8500, 0.3250, 0.0980];
 end
+scatter(ic,all_sets,[],clr,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.15);
+
 
 % text_x = {'2 years 6 months - 3 years 8 months','3 years 9 months - 4 years 10 months','4 years 11 months - 6 years 0 months'};
 xticklabels({'TD','ASD','OND*','ONDE'});

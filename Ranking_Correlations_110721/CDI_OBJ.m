@@ -2,7 +2,7 @@
 clear all
 option = 1; % 1 == proportional, 2 == proportion + swipe volume
 if option == 1
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')
+    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')%OBJ_end_12zones_proport.mat');%
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
 elseif option == 2
     load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
@@ -118,11 +118,11 @@ for num = 1 : 4
        axis([27 73 -65 25])
     end
 
-    xlabel('Age (months)')
+    xlabel('Age (months)','fontsize', 11)
     if option == 1
-        ylabel('Sharing score ({\it{snap-to-target}})')
+        ylabel('Sharing score (plates)','fontsize', 11) %ylabel('Sharing score ({\it{snap-to-target}})')
     elseif option == 2
-        ylabel('Sharing score (swipe volume)')
+        ylabel('Sharing score (plates)','fontsize', 11)
     end
     legend('subject','2nd order fit','Location','SouthEast')
     
@@ -135,6 +135,9 @@ for num = 1 : 4
     elseif num == 4
         title('ONDE')
     end
+    
+    f=gcf;
+    f.Position = [403,340,330,313];
 end
 
 % %% OND Ranked trendline and correlation

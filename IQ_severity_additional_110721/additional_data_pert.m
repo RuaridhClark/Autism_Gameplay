@@ -20,7 +20,7 @@ for kk = 1 : 6
     %% load start
     sets = cell(5,1);
     map = [];
-    subj_grp = 'TD';
+    subj_grp = 'ASD';
     for i = 1:height(tab_sev)
         file_id = ['subject_',tab_sev.id_study_id{i},'.mat'];
         [score,type] = score_choice(kk,i,tab_sev);
@@ -96,32 +96,42 @@ for kk = 1 : 6
     end
 
     f=figure;
-    boxplot(all_sets,grps,'Notch','on')
+    b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
+    set(b,'LineWidth',1.5)
     h = findobj(gca,'Tag','Box');
-%     colors = [0, 0.4470, 0.7410; 0.8500, 0.3250, 0.0980; 0.9290, 0.6940, 0.1250; 0.4940, 0.1840, 0.5560; 0.4660, 0.6740, 0.1880];
-%     colors = [.93,.69,.13;.85,.33,.1;0,.45,.74;.64,.08,.18;.3,.75,.93];
-    colors = [.64,.08,.18;.85,.33,.1;.93,.69,.13;.3,.75,.93;0,.45,.74];
-    for m=1:length(h)
-        temp_m = length(h)-m+1;
-        mm=rem(m,6);mm(mm==0)=1;
-        patch(get(h(temp_m),'XData'),get(h(temp_m),'YData'),colors(mm,:),'FaceAlpha',.5);
+% %     colors = [0, 0.4470, 0.7410; 0.8500, 0.3250, 0.0980; 0.9290, 0.6940, 0.1250; 0.4940, 0.1840, 0.5560; 0.4660, 0.6740, 0.1880];
+% %     colors = [.93,.69,.13;.85,.33,.1;0,.45,.74;.64,.08,.18;.3,.75,.93];
+%     colors = [.64,.08,.18;.85,.33,.1;.93,.69,.13;.3,.75,.93;0,.45,.74];
+%     for m=1:length(h)
+%         temp_m = length(h)-m+1;
+%         mm=rem(m,6);mm(mm==0)=1;
+%         patch(get(h(temp_m),'XData'),get(h(temp_m),'YData'),colors(mm,:),'FaceAlpha',.5);
+%     end
+    %% Add scatter points
+    hold on
+    [C,~,ic]=unique([grps],'stable');
+    if strcmp(subj_grp,'TD')
+        clr = [0, 0.4470, 0.7410];
+    elseif strcmp(subj_grp,'ASD')
+        clr = [0.8500, 0.3250, 0.0980];
     end
+    scatter(ic,all_sets,[],clr,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.15);
 
     % text_x = {'2 years 6 months - 3 years 8 months','3 years 9 months - 4 years 10 months','4 years 11 months - 6 years 0 months'};
     xticklabels({'1','2','3','4','5'});
     % set(gca,'xticklabel',entries,'fontsize',10)
 
     if option == 1
-        ylabel('Perturbation threshold (proportion + swipe volume)')
+        ylabel('Perturbation threshold (proportion + swipe volume)','fontsize',14)
     elseif option == 2
-        ylabel('Perturbation threshold (proportion)')
+        ylabel('Sharing score (plates)','fontsize',14)
     end
     box off
 
     num_sets=[];
     for i = 1 : length(sets)
         num_sets = ['n = ',num2str(length(sets{i}))];
-        text(0.055+(i-1)/5,.98,num_sets,'Units','normalized')
+        text(0.055+(i-1)/5,.99,num_sets,'Units','normalized','fontsize',14)
     end
 %     title([type,' ',subj_grp])
     % text(0.05,1,num_sets,'Units','normalized')
@@ -138,14 +148,14 @@ for kk = 1 : 6
         type
         save_p
         if pval<0.001
-            text(0.02,1.03,['p_{ANOVA} = ',sprintf('%1.1e', pval)],'Units','normalized')
+            text(0.02,1.05,['p_{ANOVA} = ',sprintf('%1.1e', pval)],'Units','normalized','fontsize',14)
         elseif pval<0.01
-            text(0.02,1.03,['p_{ANOVA} = ',sprintf('%1.4f', pval)],'Units','normalized')
+            text(0.02,1.05,['p_{ANOVA} = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize',14)
         elseif pval<10%0.1
-            text(0.02,1.03,['p_{ANOVA} = ',sprintf('%1.4f', pval)],'Units','normalized')
+            text(0.02,1.05,['p_{ANOVA} = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize',14)
         end
-            xlabel([type,' score'])
-            title(subj_grp)
+            xlabel([type,' score'],'fontsize',14)
+%             title(subj_grp)
     end
     
 end

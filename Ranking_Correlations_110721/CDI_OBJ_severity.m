@@ -2,7 +2,7 @@
 clear all
 option = 1; % 1 == proportional, 2 == proportion + swipe volume
 if option == 1
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')
+    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_12zones_proport.mat') %OBJ_end_accurate_proport_bi.mat')
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
 elseif option == 2
     load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
@@ -119,11 +119,11 @@ for num = 1 : 3
     end
 
     if p<0.001
-        text(0.05,.05,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.95,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
     elseif p<0.01
-        text(0.05,.05,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     elseif p<10%0.1
-        text(0.05,.05,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     end
     
     if option == 1
@@ -132,9 +132,9 @@ for num = 1 : 3
        axis([27 73 -70 30])
     end
 
-    xlabel('Age (months)')
+    xlabel('Age (months)','fontsize', 11)
     if option == 1
-        ylabel('Sharing score (plates)')
+        ylabel('Sharing score ({\it{snap-to-target}})','fontsize', 11) %ylabel('Sharing score (plates)','fontsize', 11) %
     elseif option == 2
         ylabel('Sharing score (swipe volume)')
     end
@@ -147,6 +147,9 @@ for num = 1 : 3
     elseif num == 3
         title('3')
     end
+    
+    f=gcf;
+    f.Position = [403,340,330,313];
 end
 
 %% Boxplot age - Food as an Origin

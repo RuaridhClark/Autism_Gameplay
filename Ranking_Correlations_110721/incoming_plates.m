@@ -1,20 +1,20 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
+load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_12zones.mat')
 % load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto';
 folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
 folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
 folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
 addpath(folder2,folder3,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
+file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto\'; % should match zone type
 
 
 %% stack the adjs
-num =16;    % number of ipad objects (nodes)
+num =12;    % number of ipad objects (nodes)
 saved = zeros(num,704);
 save_V = zeros(num,704);
 
@@ -118,8 +118,8 @@ end
 xticklabels({'TD','ASD','OND*','ONDE'});
 % set(gca,'xticklabel',entries,'fontsize',10)
 
-% ylabel('No. of swipes - food to plate')
-ylabel('No. of swipes - food to{\it snap-to-target} zone')
+ylabel('No. of swipes - food to plate','fontsize', 11)
+% ylabel('No. of swipes - food to{\it snap-to-target} zone')
 % axis([0.5 4.5 0 165])
 % % legend('TD','ASD','OND','ONDE')
 % box off
@@ -227,8 +227,8 @@ for num = 1 : 4
     end
     
     axis([27 73 0 110])%axis([27 73 0 125])
-    xlabel('Age (months)')
-    ylabel('No. of swipes - food to plates')
+    xlabel('Age (months)','fontsize', 11)
+    ylabel('No. of swipes - food to plates','fontsize', 11)
 %     ylabel('No. of swipes - food to {\it{snap-to-target}}')
     legend('subject','2nd order fit','Location','NorthWest')
     
@@ -241,6 +241,9 @@ for num = 1 : 4
     elseif num == 4
         title('ONDE')
     end
+    
+    f=gcf;
+    f.Position = [403,340,330,313];
 end
 
 % %% OND Ranked trendline and correlation

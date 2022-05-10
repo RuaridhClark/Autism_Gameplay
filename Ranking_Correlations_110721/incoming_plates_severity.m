@@ -107,6 +107,8 @@
 %     grps = [grps,ones(1,length(vals))*iter];%val(sets{num})))*iter];
 % end
 
+load('n_swipes_snapto.mat') %load('n_swipes_accurate.mat')
+
 for num = 1 : 3
     figure;
 %     f=fit(months(sets{num}),ranked(sets{num}),'poly1');
@@ -155,9 +157,9 @@ for num = 1 : 3
     
     axis([27 73 0 110])
 
-    xlabel('Age (months)')
-    ylabel('No. of swipes - food to plates')
-%     ylabel('No. of swipes - food to{\it snap-to-target} zone')
+    xlabel('Age (months)','fontsize', 11)
+%     ylabel('No. of swipes - food to plates','fontsize', 11)
+    ylabel('No. of swipes - food to {\it{snap-to-target}})','fontsize', 11)
 %     legend('subject','2nd order fit','Location','NorthWest')
 %     legend('subject','2nd order fit','Location','SouthEast')
     
@@ -171,6 +173,9 @@ for num = 1 : 3
         title('3')
         legend('subject','2nd order fit','Location','NorthWest')
     end
+    
+    f=gcf;
+    f.Position = [403,340,330,313];
 end
 
 %% Boxplot age - Food as an Origin
