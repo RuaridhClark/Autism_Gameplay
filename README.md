@@ -22,3 +22,7 @@ updated swipe zones:
 Ranking_Main_11072 folder
 Ranking_Correlations_110721 folder
 adjs_110721 folder
+
+%% Updated Pipeline
+fix_tapCount_errors
+identify_swipes

@@ -1,113 +1,115 @@
-% % % % check NNR_adj_conns_OBJ2 and pert changes for velocity case
-% clear all
-% load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
-% 
-% % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
-% % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-% folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
-% folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-% folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-% folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-% folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
-% addpath(folder3,folder4,folder5,folder6,folder7)
-% % file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs\adj_obj_end\'; % should match zone type
-% 
-% %%
-% fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
-% tab_sev = readtable([fileloc,'\eCRF.csv']);
-% 
-% asdname_save = cell(704,1);
-% all_severity = zeros(704,1);
-% sets = cell(3,1);
-% check = 0;
-% 
-% m = 0;
-% map=zeros(1,height(tab_sev));
-% file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\';
-% for i = 1:height(tab_sev)
-%     skip=1;
-%     file_id = ['subject_',tab_sev.id_study_id{i},'.mat'];
-% 
-%     severity = tab_sev.clinical_diagnosis__asd_severity_level{i};
-%     if isfile([file_loc,file_id]) && ~isempty(severity)
-% %         m=m+1;
-%         map(i)=find(strcmp(nam_save,tab_sev.id_study_id{i}));
-%         conf = tab_sev.clinical_diagnosis__asd_severity_level_rating_confidence{i};
-% %                 if strcmp(conf,'High') || strcmp(conf,'Medium') || strcmp(conf,'Low') 
-%         [sev_num] = severity_score(severity); 
-%         sets{sev_num}=[sets{sev_num},map(i)];
-% 
-%     end
-% end
-% 
-% %% stack the adjs
-% num =16;    % number of ipad objects (nodes)
-% saved = zeros(num,704);
-% save_V = zeros(num,704);
-% 
-% n_swipes = zeros(1,704);
-% f_num = 0;
-% 
-% % diagsA=zeros(12,704);
-% list=[];
-% for jj = 1:704
-%     skip=1;
-%     file_id = ['subject_',nam_save{jj},'.mat'];
-% 
-%     if isfile([file_loc,file_id])
-%         f_num = f_num + 1;
-%         load(file_id)
-%         if num == 12
-%             [adj] = adj_snap2zones(adj,num);
-%         end
-%         adj=adj(1:num,1:num);
-%         titlename = ['ID ',nam_save{jj}];
-%         savename = ['subject_',nam_save{jj}];
-%         R = f_num;
-%     else 
-%         skip=0;
-%     end
-% 
-%     if max(adj(:))==0
-%         list=[list,jj];
-%     end
-% 
-%     
-%     n_swipes(jj) = sum(adj(2,[4,5,6,7]));
-%     adj=adj-diag(diag(adj));
-% end
-% 
-% %% Correlation
-% load('diags_incoming.mat')
-% 
-% load('subject_details.mat')
-% saved=ones(1,704);
-% saved(list)=zeros(1,length(list));
-% [months] = list_AGE(subject_details_776,nam_save,saved);
-% 
-% if size(months,1)<size(months,2)
-%     months=months';
-% end
-% 
-% exclude = find(ranked==0.5);
-% exclude = [exclude;find(months>75)]; %% 75 months threshold
-% % exclude = [exclude;find(months<32)]; %% 45 Months threshold
-% for i = 1 : length(sets)
-%     rmv=find(ismember(sets{i},exclude')==1);
-%     sets{i}(rmv)=[];
-% end
-% 
-% iter=0;all_sets=[];grps=[];
-% for num = 1:3
-% %         h = kstest(diagsA(zones(2),sets{num}))
-%     iter=iter+1;
-% %         vals = diagsA(zones(zns),sets{num});
-%     vals = n_swipes(1,sets{num});
-%     all_sets = [all_sets,vals];%val(sets{num})];
-%     grps = [grps,ones(1,length(vals))*iter];%val(sets{num})))*iter];
-% end
+% % % check NNR_adj_conns_OBJ2 and pert changes for velocity case
+clear all
+load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
 
-load('n_swipes_snapto.mat') %load('n_swipes_accurate.mat')
+% folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
+% folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
+folder3 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
+addpath(folder3,folder4,folder5,folder6,folder7)
+% file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs\adj_obj_end\'; % should match zone type
+
+%%
+fileloc='C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\IQ_severity';
+tab_sev = readtable([fileloc,'\eCRF.csv']);
+
+asdname_save = cell(704,1);
+all_severity = zeros(704,1);
+sets = cell(3,1);
+check = 0;
+
+m = 0;
+map=zeros(1,height(tab_sev));
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\';
+for i = 1:height(tab_sev)
+    skip=1;
+    file_id = ['subject_',tab_sev.id_study_id{i},'.mat'];
+
+    severity = tab_sev.clinical_diagnosis__asd_severity_level{i};
+    if isfile([file_loc,file_id]) && ~isempty(severity)
+%         m=m+1;
+        map(i)=find(strcmp(nam_save,tab_sev.id_study_id{i}));
+        conf = tab_sev.clinical_diagnosis__asd_severity_level_rating_confidence{i};
+%                 if strcmp(conf,'High') || strcmp(conf,'Medium') || strcmp(conf,'Low') 
+        [sev_num] = severity_score(severity); 
+
+        if strcmp(tab_sev.patient_data__sex{i},'Female') %%%%%%%%%%%% TEMPORARY - REMOVE %%%%%%%%%%%%%%%
+            sets{sev_num}=[sets{sev_num},map(i)];
+        end
+    end
+end
+
+%% stack the adjs
+num =16;    % number of ipad objects (nodes)
+saved = zeros(num,704);
+save_V = zeros(num,704);
+
+n_swipes = zeros(1,704);
+f_num = 0;
+
+% diagsA=zeros(12,704);
+list=[];
+for jj = 1:704
+    skip=1;
+    file_id = ['subject_',nam_save{jj},'.mat'];
+
+    if isfile([file_loc,file_id])
+        f_num = f_num + 1;
+        load(file_id)
+        if num == 12
+            [adj] = adj_snap2zones(adj,num);
+        end
+        adj=adj(1:num,1:num);
+        titlename = ['ID ',nam_save{jj}];
+        savename = ['subject_',nam_save{jj}];
+        R = f_num;
+    else 
+        skip=0;
+    end
+
+    if max(adj(:))==0
+        list=[list,jj];
+    end
+
+    
+    n_swipes(jj) = sum(adj(2,[4,5,6,7]));
+    adj=adj-diag(diag(adj));
+end
+
+%% Correlation
+load('diags_incoming.mat')
+
+load('subject_details.mat')
+saved=ones(1,704);
+saved(list)=zeros(1,length(list));
+[months] = list_AGE(subject_details_776,nam_save,saved);
+
+if size(months,1)<size(months,2)
+    months=months';
+end
+
+exclude = find(ranked==0.5);
+exclude = [exclude;find(months>75)]; %% 75 months threshold
+% exclude = [exclude;find(months<32)]; %% 45 Months threshold
+for i = 1 : length(sets)
+    rmv=find(ismember(sets{i},exclude')==1);
+    sets{i}(rmv)=[];
+end
+
+iter=0;all_sets=[];grps=[];
+for num = 1:3
+%         h = kstest(diagsA(zones(2),sets{num}))
+    iter=iter+1;
+%         vals = diagsA(zones(zns),sets{num});
+    vals = n_swipes(1,sets{num});
+    all_sets = [all_sets,vals];%val(sets{num})];
+    grps = [grps,ones(1,length(vals))*iter];%val(sets{num})))*iter];
+end
+
+% load('n_swipes_snapto.mat') %load('n_swipes_accurate.mat')
 
 for num = 1 : 3
     figure;
@@ -275,7 +277,7 @@ function [adj] = adj_snap2zones(adj,num)
     for it = 1:num
         adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
         adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
-        adj(it,13:16)=zeros(1,4);                     % remove non-food connections
+        adj(it,13:16)=zeros(1,4);                 % remove non-food connections
         adj(13:16,it)=zeros(4,1); 
     end
     adj = adj(1:12,1:12);

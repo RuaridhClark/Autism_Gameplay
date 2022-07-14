@@ -2,25 +2,25 @@
 clear all
 option = 1; % 1 == proportional, 2 == proportion + swipe volume
 if option == 1
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_12zones_proport.mat') %OBJ_end_accurate_proport_bi.mat')
+    load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat') %OBJ_end_12zones_proport.mat') %
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
 elseif option == 2
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
+    load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 end
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
-folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
+folder3 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\';
 addpath(folder3,folder4,folder5,folder6,folder7)
 % file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs\adj_obj_end\'; % should match zone type
 
 %%
-fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
+fileloc='C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\IQ_severity';
 tab_sev = readtable([fileloc,'\eCRF.csv']);
 
 asdname_save = cell(704,1);
@@ -30,7 +30,7 @@ check = 0;
 
 m = 0;
 map=zeros(1,height(tab_sev));
-file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\';
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\\adjs_110721\adj_obj_end_accurate\';
 for i = 1:height(tab_sev)
     skip=1;
     file_id = ['subject_',tab_sev.id_study_id{i},'.mat'];
@@ -42,7 +42,9 @@ for i = 1:height(tab_sev)
         conf = tab_sev.clinical_diagnosis__asd_severity_level_rating_confidence{i};
 %                 if strcmp(conf,'High') || strcmp(conf,'Medium') || strcmp(conf,'Low') 
         [sev_num] = severity_score(severity); 
-        sets{sev_num}=[sets{sev_num},map(i)];
+        if strcmp(tab_sev.patient_data__sex{i},'Female') %%%%%%%%%%%% TEMPORARY - REMOVE %%%%%%%%%%%%%%%
+            sets{sev_num}=[sets{sev_num},map(i)];
+        end
 
     end
 end
@@ -52,6 +54,8 @@ load('diags_incoming.mat')
 
 load('subject_details.mat')
 [months] = list_AGE(subject_details_776,nam_save,saved);
+%% temp gender addition %%
+% [sets_gender] = set_allocate_GENDER_TYPE(subject_details_776,nam_save,saved);
 
 if size(months,1)<size(months,2)
     months=months';

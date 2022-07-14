@@ -1,16 +1,16 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_12zones.mat')
+load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_12zones.mat','nam_save')
 % load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
-folder2 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto';
-folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
+folder2 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder3 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate';
+folder5 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
 addpath(folder2,folder3,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto\'; % should match zone type
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_accurate\'; % should match zone type
 
 
 %% stack the adjs
@@ -87,7 +87,7 @@ if size(months,1)<size(months,2)
     months=months';
 end
 
-exclude = find(ranked==0.5);
+exclude = []%find(ranked==0.5);
 exclude = [exclude;find(months>75)]; %% 75 months threshold
 % exclude = [exclude;find(months<50)]; %% 45 Months threshold
 for i = 1 : length(sets)

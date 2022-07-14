@@ -1,28 +1,28 @@
 clear all
-option = 1;
+option = 2;
 for s = 1 : 11
     if option == 1
 %         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
-        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate.mat')
+        load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
     elseif option == 2
 %         load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
-        load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport.mat')
+        load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')
     end
-    fileloc='I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\IQ_severity';
+    fileloc='C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\IQ_severity';
     tab_sev = readtable([fileloc,'\eCRF.csv']);
 
     % folder3 = 'H:\My Documents\MATLAB\Autism_MAIN\adjs\adj_obj_end';
-    folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
+    folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
     % folder5 = 'H:\My Documents\MATLAB\Autism_MAIN\Plots';
-    folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-    folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
+    folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+    folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
     addpath(folder4,folder6,folder7)% addpath(folder3,folder4,folder5,folder6,folder7)
-    file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end\'; % should match zone type
+    file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end\'; % should match zone type
 
     load('swipes_all704.mat','nam_save')
 
     %% stack the adjs
-    num =12;    % number of ipad objects (nodes)
+    num =16;    % number of ipad objects (nodes)
 
     asdname_save = cell(704,1);
     set = [];
@@ -83,7 +83,7 @@ for s = 1 : 11
         end
     end
     
-    load('H:\My Documents\MATLAB\Autism_MAIN\subject_details.mat')
+    load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\subject_details.mat')
     [months] = list_AGE_update(subject_details_776,asdname_save);
     months=[months,0]; % hacky
     val=[val,0];
@@ -238,7 +238,7 @@ end
 function [all_scores,titlename] = iq_test(s,tab_sev)
     if s == 1
         all_scores = tab_sev.iq_wisc__general;
-        all_scores = str2double(all_scores);%cell
+%         all_scores = str2double(all_scores);%cell
         titlename = 'iq_wisc__general';
     elseif s == 2
         all_scores = tab_sev.iq_wisc__verbal_comprehension_index;
@@ -272,7 +272,7 @@ function [all_scores,titlename] = iq_test(s,tab_sev)
         titlename = 'vabs__motor_skills';
     elseif s == 12
         all_scores = tab_sev.vabs__maladaptive_behavior;
-        all_scores = str2double(all_scores);%cell
+%         all_scores = str2double(all_scores);%cell
         titlename = 'vabs__maladaptive_behavior';
     end
         %%%

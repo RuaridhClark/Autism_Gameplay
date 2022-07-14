@@ -2,20 +2,20 @@
 clear all
 option = 1; % 1 == proportional, 2 == proportion + swipe volume
 if option == 1
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')%OBJ_end_12zones_proport.mat');%
+    load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat')%OBJ_end_12zones_proport.mat');%
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\OBJ_end_proport_110721.mat')
 elseif option == 2
-    load('H:\My Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
+    load('C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat')
 %     load('H:\My Documents\MATLAB\Autism_MAIN\Ranking_Correlations_110721\Data\save_OBJ_end.mat')
 end
 
 % folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
 % folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto';
-folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
+folder3 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto';
+folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
+folder5 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
+folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
 addpath(folder3,folder4,folder5,folder6,folder7)
 % file_loc = 'H:\My Documents\MATLAB\Autism_MAIN\adjs\adj_obj_end\'; % should match zone type
 
