@@ -2,6 +2,8 @@
 *.pdf
 *.png
 *.pdf
+*.asv
 
+Archive/
 IQ_severity_additional_110721/Archive/
 test_notebook.ipynb

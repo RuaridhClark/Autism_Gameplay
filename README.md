@@ -24,5 +24,8 @@ Ranking_Correlations_110721 folder
 adjs_110721 folder
 
 %% Updated Pipeline
-fix_tapCount_errors
-identify_swipes
+fix_tapCount_errors or identify_swipes
+allocate_swipes
+
+
+%% Krysiek data in C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data
