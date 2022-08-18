@@ -9,23 +9,23 @@ function [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,g
         else
             sev_num = 0;
         end
-        if ~isempty(Ind)
-            if strcmp(gender,subject_details{i,4}) | strcmp(gender,'')
-                if max(saved(:,I))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
-                    if strcmp(subject_details{i,5},'TD')
-                        sets{1} = [sets{1},I];
-                    elseif strcmp(subject_details{i,5},'ASD')
-                        if sev_num == 1
-                            sets{2} = [sets{2},I];
-                        elseif sev_num == 2
-                            sets{3} = [sets{3},I];
-                        elseif sev_num == 3
-                            sets{4} = [sets{4},I];
-                        end
+%         if ~isempty(Ind)
+        if strcmp(gender,subject_details{i,4}) | strcmp(gender,'')
+            if max(saved(:,I))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
+                if strcmp(subject_details{i,5},'TD')
+                    sets{1} = [sets{1},I];
+                elseif strcmp(subject_details{i,5},'ASD')
+                    if sev_num == 1
+                        sets{2} = [sets{2},I];
+                    elseif sev_num == 2
+                        sets{3} = [sets{3},I];
+                    elseif sev_num == 3
+                        sets{4} = [sets{4},I];
                     end
                 end
             end
         end
+%         end
     end
 
 end

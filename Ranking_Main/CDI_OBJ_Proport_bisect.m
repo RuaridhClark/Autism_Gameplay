@@ -1,19 +1,17 @@
 % check NNR_adj_conns_OBJ2 and pert changes for velocity case
 clear all
-% folder1 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate';
-% folder2 = 'H:\My Documents\MATLAB\Autism_MAIN\EEG_eigalign_validate\functions';
-folder3 = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto';
-folder4 = 'H:\My Documents\GitHub\Autism_Gameplay\Set_allocate';
-folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-folder6 = 'H:\My Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-folder7 = 'H:\My Documents\GitHub\Autism_Gameplay';
-addpath(folder3,folder4,folder5,folder6,folder7)
-file_loc = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\adj_obj_end_snapto\'; % should match zone type
+folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
+% folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
+folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj';
+folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
+addpath(folder4,folder6,folder7)
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
-num =12;    % number of ipad zones (nodes)
+num =16;    % number of ipad zones (nodes)
+redirect = 0; % rewire snap-to-target zones
 pert_init=-.80;
 
 saved = zeros(num,704);
@@ -23,15 +21,16 @@ for i = 1:704
     file_id = ['subject_',nam_save{i},'.mat'];
 
     if isfile([file_loc,file_id])
-        load(file_id)
+        load([file_loc,file_id])
         titlename = ['ID ',nam_save{i}];
         savename = ['subject_',nam_save{i}];
 
-%         if num == 16
+        if num == 16 && redirect == 0
             L = adj2L(adj,num);
-%         elseif num == 12
+        elseif num == 16 && redirect == 1
 %             L = adj2L_snap2zones(adj,num);
-%         end
+            L = adj2L_snap2zones_foodloc(adj,num);
+        end
         
         list = [4,5,6,7]; check=1; 
         pert =40*.01; prev=pert_init; tmp_pert=pert;
@@ -64,12 +63,12 @@ for i = 1:704
     end
 end
 
-save('temp_save_OBJ_end.mat')
+save('temp_save_OBJ_end.mat','ranked','nam_save')
 
 %%%%%%%%% functions %%%%%%%%%
 function [L] = adj2L(adj,num)
-    %% remove zn 4-7 incoming except from 2
-    allow=[2,4,5,6,7];
+    %% remove zn 4-7 incoming except from 2, 4, 5, 6, 7
+    allow=[2];%,4,5,6,7];
     for it = 1:num
         if ~ismember(it,allow)
             if num == 16
@@ -78,10 +77,10 @@ function [L] = adj2L(adj,num)
             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end
-    adj=adj-diag(diag(adj));
+%     adj=adj-diag(diag(adj));      % remove diagonal
     
     if sum(adj(:))>0
-        adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
+        adj = (adj./sum(adj(:)));   % convert to proportional weights
     end
 
     bweight=.01;
@@ -89,7 +88,7 @@ function [L] = adj2L(adj,num)
 
     L=-adj + diag(sum(adj,2));
 
-    %% convert L into adj (sort of)
+    %% Remove diagonal - convert L into adj (sort of)
     L=L-diag(diag(L)); 
 end
 
@@ -108,7 +107,7 @@ end
 %             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
 %         end
 %     end
-%     adj=adj-diag(diag(adj));
+% %     adj=adj-diag(diag(adj));  % remove diagonal
 %     
 %     if sum(adj(:))>0
 %         adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
@@ -122,6 +121,38 @@ end
 %     %% convert L into adj (sort of)
 %     L=L-diag(diag(L)); 
 % end
+
+function [L] = adj2L_snap2zones_foodloc(adj,num)
+    % 2 to 4-7 = 2 to 4-7 13-16
+    % 4-7 
+    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
+%     adj(4:7,4:7)=adj(4:7,4:7)+adj(4:7,13:16);    % reconnect 2 to 13-16
+    adj(2,13:16)=zeros(1,4);               % remove re-connected connections
+%     adj(4:7,13:16)=zeros(4,4);               % remove re-connected connections
+
+    %% remove zn 4-7 incoming except from 2
+    allow=[2];%,4,5,6,7];
+    for it = 1:num
+        if ~ismember(it,allow)
+            if num == 16
+                adj(it,13:16)=adj(it,4:7)+adj(it,13:16);    % reconnect to 13-16
+            end
+            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+        end
+    end
+    
+    if sum(adj(:))>0
+        adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
+    end
+
+    bweight=.01;
+    [adj] = NNR_adj_conns_OBJ2(adj,bweight);
+
+    L=-adj + diag(sum(adj,2));
+
+    %% Remove diagonal - convert L into adj (sort of)
+    L=L-diag(diag(L)); 
+end
 
 function [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert)
     if max(saved(:,i))>0

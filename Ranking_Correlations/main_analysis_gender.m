@@ -1,11 +1,11 @@
 % 
 clear all
 num = 16;               % accurate = 16, snap-to = 12
-option = 2;             % 1 = n_swipes, 2 = sharing score
+option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
 destination = 'plates'; % n_swipes for 'plates' or 'food' destinations
-gender = '';            % '' or 'Male' or 'Female' or 'compare'
-severity = 'on';        % 'on' or ''
-combine = 0;
+gender = '';     % '' or 'Male' or 'Female' or 'compare'
+severity = '';        % 'on' or ''
+combine = 1;
 
 [folder_loc,alt_folder_loc,file_loc,floc] = setup();
 tab_sev = readtable([floc,'\eCRF.csv']);
@@ -16,12 +16,15 @@ if combine == 0
     load('subject_details.mat')
     subject_details = subject_details_776;
 elseif combine == 1
-    load('subject_details_combine.mat')
+    addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_krysiek'
+    load('subject_details_combine_ond.mat')
     subject_details = subject_details_combine;
     if num == 16
-        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_proport_Krysiek.mat'],'list','nam_save','saved','ranked');
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+        extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
     elseif num == 12
-        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_12zones_proport_Krysiek.mat'],'list','nam_save','saved','ranked');
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+        extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
     end
     ranked = [ranked;extra.ranked];
     nam_save = [nam_save,extra.nam_save];
@@ -32,7 +35,7 @@ end
 saved=ones(1,length(subject_details)); saved(list)=zeros(1,length(list)); % create list of 1s delete those without adjs
 [sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity);
 
-sets = rmv_frm_sets(sets,months);
+sets = rmv_frm_sets(sets,months,ranked);
 
 if ~strcmp(severity,'on')
     sets = rmv_ADHD(sets,subject_details,nam_save,saved);
@@ -42,6 +45,11 @@ if option == 1
     results = n_swipes;
 elseif option == 2
     results = ranked';
+%     results(results<-.3)=-0.3;
+elseif option == 3
+    [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination);
+    [n_swipes12,list12] = swipe_analysis(12,file_loc,nam_save,destination);
+    results = n_swipes./n_swipes12;
 end
 
 if strcmp(gender,'compare') % compare male and female
@@ -77,24 +85,27 @@ function [folder_loc,alt_folder_loc,file_loc,floc] = setup()
     folder3 = [folder_loc,'\Create_adj'];
     folder4 = [folder_loc,'\adjs\adj_obj_end_accurate'];
     folder5 = [folder_loc,'\Data'];
-    addpath(folder1,folder2,folder3,folder4,folder5)
+    folder6 = folder_loc;
+    addpath(folder1,folder2,folder3,folder4,folder5,folder6)
 end
 
 function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc)
-    if option == 1      % volume
-        if num == 16
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
-        elseif num == 12
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
-        end
-    elseif option == 2  % proportion
-        if num == 16
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_proport_bi.mat'],'list','nam_save','saved','ranked')
-%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_proport_Krysiek.mat'],'list','nam_save','saved','ranked')
-        elseif num == 12
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones_proport.mat'],'list','nam_save','saved','ranked')
-        end
+    saved = []; list = [];
+%     if option == 1 || option == 3     % volume
+%         if num == 16
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
+%         elseif num == 12
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
+%         end
+%     elseif option == 2  % proportion
+    if num == 16
+%         load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate.mat'],'nam_save','ranked') % inter-plate sharing score
+        load([folder_loc,'\Ranking_Correlations\Data\accurate_2only.mat'],'nam_save','ranked')
+    elseif num == 12
+%         load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
+        load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
     end
+%     end
 end
 
 function [sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity)
@@ -114,15 +125,17 @@ function [sets,months] = create_sets_months(subject_details,nam_save,saved,gende
         [sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
     else
         [sets] = set_allocate(subject_details,nam_save,saved);
+%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
+%         sets{2} = setdiff(sets{2},sets_sev{4});
     end
 end
 
 
-function [sets] = rmv_frm_sets(sets,months)
-    exclude = find(months>105); %% 75 months threshold
-    % exclude = find(ranked==0.5);
+function [sets] = rmv_frm_sets(sets,months,ranked)
+    exclude = find(months>72); %% 75 months threshold
+%     exclude = [exclude;find(ranked<-0.5)];
     % exclude = [exclude;489]; % no food-to-plate swipes recorded
-    exclude = [exclude;find(months<10)]; %% 45 Months threshold
+    exclude = [exclude;find(months<30)]; %% 45 Months threshold
     for i = 1 : length(sets)
         rmv=find(ismember(sets{i},exclude')==1);
         sets{i}(rmv)=[];
@@ -131,11 +144,21 @@ end
 
 function [sets] = rmv_ADHD(sets,subject_details_776,nam_save,saved)
     %%%  Remove ADHD
-    load('OND_details.mat','OND_details')
-    [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
-    curr_set = sets{3};
-    keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
-    sets{3}=curr_set(ismember(curr_set,keep));
+    if length(sets)<8
+        load('OND_details.mat','OND_details')
+        [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+        curr_set = sets{3};
+        keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
+        sets{3}=curr_set(ismember(curr_set,keep));
+    else
+        load('OND_details.mat','OND_details')
+        [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+        curr_set = sets{3};
+        keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
+        sets{3}=curr_set(ismember(curr_set,keep));
+        curr_set = sets{7};
+        sets{7}=curr_set(ismember(curr_set,keep));
+    end
 end
 
 function [all_sets,grps] = create_grps_allsets_gender(results,sets)
@@ -184,7 +207,7 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
             if num == 12
                 [adj] = adj_snap2zones(adj,num);
             end
-            adj=adj(1:num,1:num);
+%             adj=adj(1:num,1:num);
         end
     
         if max(adj(:))==0
@@ -193,6 +216,7 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
     
         if strcmp(destination,'plates')
             n_swipes(jj) = sum(adj(2,[4,5,6,7]));
+%             n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
         elseif strcmp(destination,'food')
             n_swipes(jj) = sum(adj(2,2));
 %             n_swipes(jj) = sum(adj(2,:));
@@ -206,45 +230,49 @@ end
 
 function [adj] = adj_snap2zones(adj,num)
     % rewire adjacency from 16 to 12 zones
-    for it = 1:num
+    init=adj;
+%     allow=[2,4,5,6,7];
+    for it = 2
         adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
-        adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
         adj(it,13:16)=zeros(1,4);                     % remove non-food connections
-        adj(13:16,it)=zeros(4,1); 
     end
-    adj = adj(1:12,1:12);
+%     adj = adj(1:12,1:12);
     %% remove zn 4-7 incoming except from 2
-    allow=[2,4,5,6,7];
+    allow=[2];%,4,5,6,7];
     for it = 1:num
         if ~ismember(it,allow)
+            adj(it,13:16) = adj(it,4:7)+adj(it,13:16);
             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end
 %     adj=adj-diag(diag(adj));
     
     bweight=1;
-    [adj] = NNR_adj_conns_OBJ2(adj,bweight);
+%     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end
 
 function [] = plot_results(results,months,sets,id,option,destination,num,gender,sev_choice)
     figure;
-    
     x=months(sets{id});
     y=results(sets{id});
     [pf,S] = polyfit(x,y,2);
     % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
-    [y_fit,~] = polyval(pf,x,S);
+    [y_fit,delta] = polyval(pf,x,S);
+    mean(delta)
     % Plot the original data, linear fit, and 95% prediction interval y±2?.
     [~,Ind]=sort(x,'asc');
     [~,p] = corr(x,y,'Type','Spearman');
     
-    if p<0.01
+    if p<10.05
         linetype='-';
-    elseif p<0.05
-        linetype='--';
-    else
-        linetype=':';
     end
+%     if p<0.01
+%         linetype='-';
+%     elseif p<0.05
+%         linetype='--';
+%     else 
+%         linetype=':';
+%     end
 
     if sev_choice>0
         if sev_choice==1
@@ -257,10 +285,12 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     else
         if id == 1
             clr = [0, 0.4470, 0.7410];
+%             clr = [.4 .4 .4];
         elseif id == 2
             clr = [0.8500, 0.3250, 0.0980];
         elseif id == 3
-            clr = [0.9290, 0.6940, 0.1250];
+%             clr = [0.9290, 0.6940, 0.1250];
+            clr = [0.47,0.67,0.19];
         elseif id == 4
             clr = [0.4940, 0.1840, 0.5560];
         end
@@ -270,46 +300,72 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     scatplot=scatter(x(Ind),y(Ind),55,'o','MarkerFaceColor',clr,'MarkerEdgeColor',clr); 
     % Set property MarkerFaceAlpha and MarkerEdgeAlpha to <1.0
     scatplot.MarkerFaceAlpha = .3;
+    scatplot.MarkerEdgeAlpha = .5;
     hold on
-    if p<0.05
+    if p<10.05
         plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+%         patch([x(Ind)' fliplr(x(Ind)')], [(y_fit(Ind)+1*delta(Ind))' fliplr((y_fit(Ind)-1*delta(Ind))')], [0, .6, .77],'FaceColor',clr, 'FaceAlpha',0.15, 'EdgeColor','none')
+%         plot(x(Ind),y_fit(Ind),'-','color',clr,'LineWidth',3)
+        plot(x(Ind),y_fit(Ind)+1*delta(Ind),linetype,'color',clr,'LineWidth',1.5,'LineStyle',':')
+        plot(x(Ind),y_fit(Ind)-1*delta(Ind),linetype,'color',clr,'LineWidth',1.5,'LineStyle',':')
     end
 
     if p<0.001
-        text(0.05,.95,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        stars_only(3)
     elseif p<0.01
-        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        stars_only(2)
+    elseif p<0.05
+        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        stars_only(1)
     elseif p<10%0.1
-        text(0.05,.95,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     end
     
     if option == 2
-        axis([26 83 -1 .25])
-%         axis([27 73 min(y) max(y)])
+%         axis([28 74 -.5 .25])
+        axis([28 74 -.3 .25])
     elseif option == 1
-%        axis([27 73 min(y) max(y)])
-        axis([26 83 0 120])
+%        axis([26 83 min(y) max(y)])
+%         axis([28 74 0 120])
+        axis([28 74 0 141])
+%         axis([28 74 0 60])
+    elseif option == 3
+        axis([28 74 0 1])
     end
 
     xlabel('Age (months)','fontsize', 11)
     if option == 1
         if strcmp(destination,'plates')
             if num == 16
-                ylabel('No. of swipes - food to plates','fontsize',14)
+                ylabel('No. of swipes (plates)','fontsize',14)
+%                 ylabel('No. of swipes (all)','fontsize',14)
+                nam = 'n_swipes_16_';
             elseif num == 12
-                ylabel('No. of swipes - food to snap-to-target','fontsize',14)
+                ylabel('No. of swipes (snap-to-target)','fontsize',14)
+%                 ylabel('No. of swipes (inter-plates)','fontsize',14)
+                nam = 'n_swipes_12_';
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes - zone 2 only','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
+            nam = 'n_swipes_food_';
         end
     elseif option == 2
         if num == 16
             ylabel('Sharing score (plates)','fontsize',14)
+%             ylabel('Sharing score (plates)','fontsize',14)
+            nam = 'sharing_16_';
         elseif num == 12
             ylabel('Sharing score (snap-to-target)','fontsize',14)
+%             ylabel('Sharing score (inter-plates)','fontsize',14)
+            nam = 'sharing_12_';
         end
+    elseif option == 3
+        ylabel('Swipe accuracy ratio','fontsize',14)
+        nam = 'ratio_';
     end
-    legend('subject','2nd order fit','Location','SouthEast')
+%     legend('subject','2nd order fit','Location','SouthEast','Orientation','horizontal','fontsize',14)
     
     if id == 1
         titletxt = 'TD';
@@ -335,25 +391,80 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
 
     f=gcf;
     f.Position = [403,340,330,313];
+
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/food_',nam,titletxt,'_',gender,'.png'])
+    else
+        saveas(gcf,['Figures/',nam,titletxt,'_',gender,'.png'])
+    end
 end
 
 function [] = stars_line(n_stars,height,strt,nd,drp)
     drp2 = 3.5*drp/2;
+    shft = 0.105;
     hold on
     if n_stars == 3
-        scatter((nd-strt)/2+(strt-0.18),height,'pk','filled')
-        scatter((nd-strt)/2+(strt),height,'pk','filled')
-        scatter((nd-strt)/2+(strt+0.18),height,'pk','filled')
+%         scatter((nd-strt)/2+(strt-0.18),height,'pk','filled')
+%         scatter((nd-strt)/2+(strt),height,'pk','filled')
+%         scatter((nd-strt)/2+(strt+0.18),height,'pk','filled')
+        text((nd-strt)/2+(strt-0.18)-shft,height,'$$\star$$','Interpreter', 'latex','FontSize',18)
+        text((nd-strt)/2+(strt)-shft,height,'$$\star$$','Interpreter', 'latex','FontSize',18)
+        text((nd-strt)/2+(strt+0.18)-shft,height,'$$\star$$','Interpreter', 'latex','FontSize',18)
     elseif n_stars == 2
-        scatter((nd-strt)/2+(strt-0.09),height,'pk','filled')
-        scatter((nd-strt)/2+(strt+0.09),height,'pk','filled')
+        text((nd-strt)/2+(strt+0.09)-shft,height,'$$\star$$','Interpreter', 'latex','FontSize',18)
+        text((nd-strt)/2+(strt-0.09)-shft,height,'$$\star$$','Interpreter', 'latex','FontSize',18)
+%         scatter((nd-strt)/2+(strt+0.09),height,'pk','filled')
     elseif n_stars == 1
-        scatter((nd-strt)/2+(strt),height,'pk','filled')
+%         scatter((nd-strt)/2+(strt),height,'pk','filled')
+        text((nd-strt)/2+(strt)-shft,height,'$$\star$$','Interpreter', 'latex','FontSize',18)
     end
     hold on
     plot([strt,nd],[height-drp,height-drp],'k')
     plot([strt,strt],[height-drp,height-drp2],'k')
     plot([nd,nd],[height-drp,height-drp2],'k')
+end
+
+function [] = stars_line_cmpr(n_stars,height,strt,nd,drp)
+    drp2 = 1*drp/2;%3.5*
+    scale = 3;%3
+    chng = .45;%chng = .2;%
+    shft = .2;%shft = .1;%
+    hold on
+    if n_stars == 3
+%         scatter((nd-strt)/2+(strt-0.18),height,'pk','filled')
+%         scatter((nd-strt)/2+(strt),height,'pk','filled')
+%         scatter((nd-strt)/2+(strt+0.18),height,'pk','filled')
+        text((nd-strt)/2+(strt-chng-shft),height+drp2*scale,'$$\star$$','Interpreter', 'latex','FontSize',18)
+        text((nd-strt)/2+(strt-shft),height+drp2*scale,'$$\star$$','Interpreter', 'latex','FontSize',18)
+        text((nd-strt)/2+(strt+chng-shft),height+drp2*scale,'$$\star$$','Interpreter', 'latex','FontSize',18)
+    elseif n_stars == 2
+        text((nd-strt)/2+(strt+chng/2-shft),height+drp2*scale,'$$\star$$','Interpreter', 'latex','FontSize',18)
+        text((nd-strt)/2+(strt-chng/2-shft),height+drp2*scale,'$$\star$$','Interpreter', 'latex','FontSize',18)
+%         scatter((nd-strt)/2+(strt+0.09),height,'pk','filled')
+    elseif n_stars == 1
+%         scatter((nd-strt)/2+(strt),height,'pk','filled')
+        text((nd-strt)/2+(strt-shft),height+drp2*scale,'$$\star$$','Interpreter', 'latex','FontSize',18)
+    end
+    hold on
+    plot([strt,nd],[height-drp,height-drp],'k')
+    plot([strt,strt],[height-drp,height-drp-drp2],'k')
+    plot([nd,nd],[height-drp,height-drp-drp2],'k')
+end
+
+function [] = stars_only(n_stars)
+    hold on
+    gap =0.055;
+    x=0.18; y=1.03;
+    if n_stars == 3
+        text(x-gap,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
+        text(x,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
+        text(x+gap,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
+    elseif n_stars == 2
+        text(x-gap/2,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
+        text(x+gap/2,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
+    elseif n_stars == 1
+        text(x,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
+    end
 end
 
 function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity)
@@ -369,7 +480,8 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
     if strcmp(severity,'on')
         colors = [0, 0.4470, 0.7410;.93,.69,.13; .85,.33,.1; .64,.08,.18];
     else
-        colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
+        colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
+%         colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
     end
         
     for i = 1:4
@@ -377,55 +489,108 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
         scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.15,'jitter','on','jitterAmount',0.15);
     end
     
-    xticklabels({'1','2','3','4','5'});
+    xticklabels({'TD','ASD','OND','ONDE'});
+%     xticklabels({'TD','ASD 1','ASD 2','ASD 3'});
     
-    if option == 1
+    if option == 1 
         if strcmp(destination,'plates')
             if num == 16
-                ylabel('No. of swipes - food to plates','fontsize',14)
+                ylabel('No. of swipes (plates)','fontsize',14)
+%                 ylabel('No. of swipes (all)','fontsize',14)
             elseif num == 12
-                ylabel('No. of swipes - food to snap-to-target','fontsize',14)
+                ylabel('No. of swipes (snap-to-target)','fontsize',14)
+%                 ylabel('No. of swipes (inter-plates)','fontsize',14)
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes - zone 2 only','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
         end
     elseif option == 2
         if num == 16
             ylabel('Sharing score (plates)','fontsize',14)
         elseif num == 12
             ylabel('Sharing score (snap-to-target)','fontsize',14)
+%             ylabel('No. of swipes (inter-plates)','fontsize',14)
         end
+    elseif option == 3
+        ylabel('Swipe accuracy ratio','fontsize',14)
     end
     
     box off
 
-    if option == 2
-        axis([0.5 4.5 -1 .39])
+    if strcmp(destination,'food')
+        axis([0.5 4.5 -3 164])
+    elseif option == 2
+        axis([0.5 4.5 -.3 .25])%.39])
     elseif option == 1
-        axis([0.5 4.5 -3 150])
+        if num == 16
+%             axis([0.5 4.5 -3 145])
+            axis([0.5 4.5 0 141])
+        elseif num == 12
+%             axis([0.5 4.5 -3 172])
+%             axis([0.5 4.5 -3 60])
+            axis([0.5 4.5 0 141])
+        end
+    elseif option == 3
+        axis([0.5 4.5 0 1.2])
     end
 
     %% Plot significance stars
-    if option == 2
-    %     heights = [.295,.345,.41,.295];
-        heights = [.41,.345,.45,.31];
-        drp = .0225;
+    if strcmp(destination,'food')
+        heights = [135,143,151,130];
+        drp = 3;
+    elseif strcmp(severity,'on')
+        if option == 2
+            heights = [.4,.35,.3];
+            drp = .0225;
+        elseif option == 1
+%             heights = [125,120,115];
+            heights = [155,147.5,140];
+            drp = 3;
+        end
+    elseif option == 2
+        heights = [.28,.33,.39,.28];%,.25];
+%         heights = [.41,.345,.45,.31];
+        drp = .02;
     elseif option == 1
-        heights = [140,128,147,122];
-        drp = 2;
+        if num == 16
+            heights = [122,130,140,122];
+        elseif num == 12
+            heights = [155,162,171,155];
+        end
+        drp = 3;
+    elseif option == 3
+        heights = [1.05,1.105,1.17,1.05];
+        drp = 0.025;
     end
-    
-    n_stars = 3; 
-%     stars_line(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
-%     stars_line(3,heights(2),1,3,drp) % 3 stars,h,1,2,1
-%     stars_line(3,heights(3),2,4,drp) % 2 stars,h,1,3,2
-%     stars_line(3,heights(4),3,4,drp) % 2 stars,h,3,4,1
+ 
+%     if strcmp(destination,'food')
+%         stars_line(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
+%         stars_line(2,heights(2),1,3,drp) % 3 stars,h,1,2,1
+%         stars_line(1,heights(3),1,4,drp) % 2 stars,h,1,3,2
+%         stars_line(3,heights(4),2,4,drp) % 2 stars,h,3,4,1
+%     elseif strcmp(severity,'on')
+%         stars_line_cmpr(2,heights(1),1,2,drp) % 
+%         stars_line_cmpr(1,heights(2),2,3,drp) % 
+%         stars_line_cmpr(1,heights(3),3,4,drp) % 
+%     else
+%         stars_line(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
+%         stars_line(3,heights(2),1,3,drp) % 3 stars,h,1,2,1
+%         stars_line(3,heights(3),2,4,drp) % 2 stars,h,1,3,2
+%         stars_line(3,heights(4),3,4,drp) % 2 stars,h,3,4,1
+% %         stars_line(1,heights(5),2,3,drp) 
+%     end
        
     % legend('TD','ASD','OND*','ONDE','Orientation','horizontal')
     
     f.Position = [403,340,300,313];
 
     title(gender)
+
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/boxplot_food_',gender,'.png'])
+    else
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
+    end
 end
 
 function [save_p,combos] = significance_check(results,sets)
@@ -449,9 +614,9 @@ function [save_p] = significance_gender(results,sets)
         pval = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
         save_p(1,j) = pval;
         if pval > .001
-            text(0.05+(j-1)*.95/4,.95,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 11)
+            text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 10)
         else
-            text(0.05+(j-1)*.95/4,.95,['p = ',sprintf('%1.1e', pval)],'Units','normalized','fontsize', 11)
+            text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.1e', pval)],'Units','normalized','fontsize', 10)
         end
     end
 end
@@ -467,11 +632,11 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     hold on
     [~,~,ic]=unique(grps,'stable');
     
-    colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
+    colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
     for j = 1:12
         i=ceil(j/3);
         Ind=find(ic==j);
-        scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.15,'jitter','on','jitterAmount',0.15);
+        scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.08,'jitter','on','jitterAmount',0.15);
     end
     
     hAx=gca; 
@@ -482,10 +647,19 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     entries ={'F','M','F','M','F','M','F','M'};
     xticklabels(entries)
 
-    if option == 1
-        axis([0 12 -5 120])
+    if strcmp(destination,'food')
+        axis([0 12 -5 150])
+    elseif option == 1
+        if num == 16
+%             axis([0 12 -5 140])
+            axis([0 12 -5 173])
+        elseif num == 12
+            axis([0 12 -5 173])
+        end
     elseif option == 2
-        axis([0 12 -1 .4])
+        axis([0 12 -.3 .301])
+    elseif option == 3
+        axis([0 12 0 1])
     end
     
     %% Plot significance stars
@@ -494,25 +668,61 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     % height=30; n_stars = 1; drp = 1.75;
     % stars_line(n_stars,height,10,11,drp) % 3 stars,h,1,2,1
     box off
-    ylabel('Perturbation threshold (proportion + swipe volume)')
-    f.Position = [403,340,574,313];
+%     f.Position = [403,340,574,313];
+    f.Position = [403,340,400,313];
     xlabel('Gender')
 
     if option == 1
         if strcmp(destination,'plates')
             if num == 16
-                ylabel('No. of swipes - food to plates','fontsize',14)
+                ylabel('No. of swipes (plates)','fontsize',14)
+%                 ylabel('No. of swipes (all)','fontsize',14)
             elseif num == 12
-                ylabel('No. of swipes - food to snap-to-target','fontsize',14)
+                ylabel('No. of swipes (snap-to-target)','fontsize',14)
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes - zone 2 only','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
         end
     elseif option == 2
         if num == 16
             ylabel('Sharing score (plates)','fontsize',14)
         elseif num == 12
             ylabel('Sharing score (snap-to-target)','fontsize',14)
+%             ylabel('Sharing score (inter-plates)','fontsize',14)
         end
+    elseif option == 3
+        ylabel('Swipe accuracy ratio','fontsize',14)
     end
+
+    %% Plot significance stars
+    if strcmp(destination,'food')
+        heights = 135.*ones(1,4);
+        drp = 3;
+    elseif option == 2
+    %     heights = [.295,.345,.41,.295];
+        heights = .25.*ones(1,4);
+        drp = .0275;
+    elseif option == 1
+        if num == 16
+            heights = 122.*ones(1,4);
+        elseif num == 12
+            heights = 155.*ones(1,4);
+        end
+        drp = 3;
+    elseif option == 3
+        heights = 1.05.*ones(1,4);
+        drp = 0.025;
+    end
+ 
+%     if strcmp(destination,'food')
+%         stars_line_cmpr(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
+%         stars_line_cmpr(2,heights(2),4,5,drp) % 3 stars,h,1,2,1
+%         stars_line_cmpr(1,heights(3),7,8,drp) % 2 stars,h,1,3,2
+%         stars_line_cmpr(3,heights(4),10,11,drp) % 2 stars,h,3,4,1
+%     else
+%         stars_line_cmpr(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
+%         stars_line_cmpr(2,heights(2),4,5,drp) % 3 stars,h,1,2,1
+% %         stars_line_cmpr(3,heights(3),7,8,drp) % 2 stars,h,1,3,2
+%         stars_line_cmpr(2,heights(4),10,11,drp) % 2 stars,h,3,4,1
+%     end
 end

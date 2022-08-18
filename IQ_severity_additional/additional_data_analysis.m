@@ -1,12 +1,14 @@
 clear all
+close all
+addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Data'
 
 subj_grp = 'ASD';
-sev_choice = 2;        % set as empty string or 1,2,3
+sev_choice = '';       % set as '' or 1,2,3
 num=16;                 % accurate = 16, snap-to = 12
 option = 1;             % 1 = n_swipes, 2 = sharing score
 destination = 'plates';   % n_swipes for 'plates' or 'food' destinations
 measure = 'additional'; % measure 'additional'
-gender = 'Male';
+gender = '';
 
 [folder_loc,alt_folder_loc,file_loc,floc,n_meas] = setup(measure);
 
@@ -22,22 +24,24 @@ for kk = 1 : n_meas      % different scores (e.g. mood)
 
     months = check_months_format(months);
 
-    exclude = find(months>75);
+    exclude = find(months>72);
+    exclude = [exclude;find(months<31)]; 
     [sets] = create_sets(sets,map,exclude);
 
     load('subject_details.mat')
 
-    if option == 1
-        results = n_swipes;
-    elseif option == 2
-        results = ranked';
-    end
+    results = months';
+%     if option == 1
+%         results = n_swipes;
+%     elseif option == 2
+%         results = ranked';
+%     end
 
     [all_sets,grps] = create_grps_allsets(results,sets);	
 		 
     plot_results(subj_grp,sev_choice,all_sets,sets,grps,option,destination,num,gender)
 
-    [pval,tbl,stats] = test_significance(results,sets);
+    [pval,tbl,stats] = test_significance(results,sets); 
 
     check_significance(type,pval)
     
@@ -47,7 +51,7 @@ end
 function [folder_loc,alt_folder_loc,file_loc,floc,n_meas] = setup(measure)
     folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
     alt_folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data';
-    file_loc = [folder_loc,'\adjs_110721\adj_obj_end_accurate\']; % should match zone type
+    file_loc = [folder_loc,'\adjs\adj_obj_end_accurate\']; % should match zone type
     floc=[alt_folder_loc,'\IQ_severity'];
 
     folder1=[folder_loc,'\Set_allocate'];
@@ -64,15 +68,17 @@ end
 function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc)
     if option == 1      % volume
         if num == 16
-            load([folder_loc,'\Ranking_Correlations_110721\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
         elseif num == 12
-            load([folder_loc,'\Ranking_Correlations_110721\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
         end
     elseif option == 2  % proportion
         if num == 16
-            load([folder_loc,'\Ranking_Correlations_110721\Data\OBJ_end_accurate_proport_bi.mat'],'list','nam_save','saved','ranked')
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_proport_bi.mat'],'list','nam_save','saved','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_loops_proport_bi.mat'],'list','nam_save','saved','ranked')
         elseif num == 12
-            load([folder_loc,'\Ranking_Correlations_110721\Data\OBJ_end_12zones_proport.mat'],'list','nam_save','saved','ranked')
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones_proport.mat'],'list','nam_save','saved','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones_loops_proport.mat'],'list','nam_save','saved','ranked')
         end
     end
 end
@@ -186,7 +192,7 @@ function [n_swipes,score,sets,asdname_save,titlename,savename,map] = swipe_analy
     elseif strcmp(destination,'food')
 %         tmp = sum(diag(adj));
 %         tmp(2)=0;
-        n_swipes(map(i)) = um(adj(2,2));
+        n_swipes(map(i)) = sum(adj(2,2));
     end
     [score,sets] = reshape_score(score,map(i),sets);
     asdname_save{i} = tab_sev.id_study_id{i};
@@ -195,7 +201,7 @@ function [n_swipes,score,sets,asdname_save,titlename,savename,map] = swipe_analy
 end
 
 function [months] = load_months(folder_loc,asdname_save,saved) 
-    load([folder_loc,'\subject_details.mat'])
+    load([folder_loc,'\Data\subject_details.mat'])
     [tmp_months] = list_AGE(subject_details_776,asdname_save,saved);
     months=zeros(1,694);
     months(1:length(tmp_months))=tmp_months;
@@ -204,6 +210,7 @@ end
 function [ranked,n_swipes,map,months] = clean_results(ranked,n_swipes,saved,map,months)
     % map, n_swipes have the same index, ranked 
     rmv = find(map==0);
+    months=months(1:length(map));
     months(rmv)=[];
     map(rmv)=[];
 %     n_swipes(rmv)=[];

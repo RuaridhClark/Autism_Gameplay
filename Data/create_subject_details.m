@@ -25,6 +25,8 @@ for f = 1:length(D)
             subject_details{i,5} = 'ASD';
         elseif strcmp(cat,'td')
             subject_details{i,5} = 'TD';
+        elseif strcmp(cat,'ond')
+            subject_details{i,5} = 'OND';
         end
     end
 end

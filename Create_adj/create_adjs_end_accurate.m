@@ -1,9 +1,10 @@
 % close all
 clear all
-file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
+list =[];
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
 load('swipes_all704.mat')
 
-file_adj = 'H:\My Documents\GitHub\Autism_Gameplay\adjs_110721\';
+file_adj = 'H:\My Documents\GitHub\Autism_Gameplay\adjs\';
 
 yl = 768;
 obj(1,1:4)=[19, 227, yl-752, yl-525];
@@ -94,6 +95,9 @@ for i = 1:704
                     
                 if ~isempty(prev_n) && ~isempty(nn)
                     adj(prev_n,nn)=adj(prev_n,nn)+1;
+                    if prev_n == 2 || nn == 2
+                        list = [list,m];
+                    end
 %                     prev_n = nn;
                 elseif isempty(prev_n) && ~isempty(nn)
                     prev_n = nn;

@@ -1,9 +1,9 @@
 % 
 clear all
-num = 16;               % accurate = 16, snap-to = 12
-option = 2;             % 1 = n_swipes, 2 = sharing score
+num = 12;               % accurate = 16, snap-to = 12
+option =2;             % 1 = n_swipes, 2 = sharing score
 destination = 'plates'; % n_swipes for 'plates' or 'food' destinations
-gender = 'Female';            % '' or 'Male' or 'Female' or 'compare'
+gender = '';            % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 
 [folder_loc,alt_folder_loc,file_loc,floc] = setup();
@@ -71,18 +71,20 @@ end
 function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc)
     if option == 1      % volume
         if num == 16
-%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_proport_Krysiek.mat'],'list','nam_save','saved')
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_proport_Krysiek.mat'],'list','nam_save','saved')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_loops_proport_Krysiek.mat'],'list','nam_save','saved')
             ranked=[];
         elseif num == 12
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
         end
     elseif option == 2  % proportion
         if num == 16
 %             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_proport_bi.mat'],'list','nam_save','saved','ranked')
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_proport_Krysiek.mat'],'list','nam_save','saved','ranked')
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_proport_Krysiek.mat'],'list','nam_save','saved','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_loops_proport_Krysiek.mat'],'list','nam_save','saved','ranked')
         elseif num == 12
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones_proport.mat'],'list','nam_save','saved','ranked')
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones_proport.mat'],'list','nam_save','saved','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_12zones_loops_proport_Krysiek.mat'],'list','nam_save','saved','ranked');
         end
     end
 end
@@ -109,10 +111,10 @@ end
 
 
 function [sets] = rmv_frm_sets(sets,months)
-    exclude = find(months>105); %% 75 months threshold
+    exclude = find(months>72); %% 75 months threshold
     % exclude = find(ranked==0.5);
     % exclude = [exclude;489]; % no food-to-plate swipes recorded
-    exclude = [exclude;find(months==0)]; %% 45 Months threshold
+    exclude = [exclude;find(months<31)]; %% 45 Months threshold
     for i = 1 : length(sets)
         rmv=find(ismember(sets{i},exclude')==1);
         sets{i}(rmv)=[];
@@ -160,12 +162,12 @@ function [all_sets,grps] = create_grps_allsets(results,sets)
 end
 
 function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination) 
-    n_swipes = zeros(1,386);
+    n_swipes = zeros(1,length(nam_save));
     f_num = 0;
     
 %     diagsA=zeros(12,704);
     list=[];
-    for jj = 1:386
+    for jj = 1:length(nam_save)
 %         skip=1;
         file_id = ['subject_',nam_save{jj},'.mat'];
     
@@ -266,6 +268,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     scatplot=scatter(x(Ind),y(Ind),55,'o','MarkerFaceColor',clr,'MarkerEdgeColor',clr); 
     % Set property MarkerFaceAlpha and MarkerEdgeAlpha to <1.0
     scatplot.MarkerFaceAlpha = .3;
+    scatplot.MarkerEdgeAlpha = .3;
     hold on
     if p<0.05
         plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
@@ -280,7 +283,8 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     end
     
     if option == 2
-        axis([29 75 -1 .25])
+%         axis([29 75 -1 .25])
+        axis([27 83 -.3 .39])
 %         axis([min(x) max(x) min(y) max(y)])
     elseif option == 1
         axis([29 75 0 110])

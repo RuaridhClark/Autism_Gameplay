@@ -8,10 +8,11 @@ folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitH
 addpath(folder4,folder6,folder7)
 file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_krysiek\'; % should match zone type
 
-load('swipes_Krysiek.mat','nam_save')
+load('swipes_Krysiek_ond.mat','nam_save')
 
 %% stack the adjs
-num = 12;    % number of ipad zones (nodes)
+num = 16;    % number of ipad zones (nodes)
+redirect = 0; % rewire snap-to-target zones
 pert_init=-.80;
 
 lenN = length(nam_save);
@@ -20,17 +21,18 @@ saved = zeros(num,lenN);
 ranked = zeros(lenN,1);
 
 for i = 1:lenN
-    file_id = ['subject_',nam_save{i}];
+    file_id = ['subject_',nam_save{i},'.mat'];
 
     if isfile([file_loc,file_id])
         load([file_loc,file_id])
         titlename = ['ID ',nam_save{i}];
         savename = file_id;
 
-        if num == 16
+        if num == 16 && redirect == 0
             L = adj2L(adj,num);
-        elseif num == 12
-            L = adj2L_snap2zones(adj,num);
+        elseif num == 16 && redirect == 1
+%             L = adj2L_snap2zones(adj,num);
+            L = adj2L_snap2zones_foodloc(adj,num);
         end
         
         list = [4,5,6,7]; check=1; 
@@ -64,7 +66,7 @@ for i = 1:lenN
     end
 end
 
-save('temp_save_OBJ_end.mat')
+save('temp_save_OBJ_end.mat','ranked','nam_save')
 
 %%%%%%%%% functions %%%%%%%%%
 function [L] = adj2L(adj,num)
@@ -78,10 +80,10 @@ function [L] = adj2L(adj,num)
             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end
-    adj=adj-diag(diag(adj));
+%     adj=adj-diag(diag(adj));
     
     if sum(adj(:))>0
-        adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
+        adj = (adj./sum(adj(:)));   % convert to proportional weights
     end
 
     bweight=.01;
@@ -89,26 +91,58 @@ function [L] = adj2L(adj,num)
 
     L=-adj + diag(sum(adj,2));
 
-    %% convert L into adj (sort of)
+    %% Remove diagonal - convert L into adj (sort of)
     L=L-diag(diag(L)); 
 end
 
-function [L] = adj2L_snap2zones(adj,num)
-    for it = 1:num
-        adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 13-16
-        adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
-        adj(it,13:16)=zeros(1,4);                     % remove non-food connections
-        adj(13:16,it)=zeros(4,1); 
-    end
-    adj = adj(1:12,1:12);
+% function [L] = adj2L_snap2zones(adj,num)
+%     for it = 1:num
+%         adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 13-16
+%         adj(4:7,it)=adj(4:7,it)+adj(13:16,it);    % reconnect to 13-16
+%         adj(it,13:16)=zeros(1,4);                     % remove non-food connections
+%         adj(13:16,it)=zeros(4,1); 
+%     end
+%     adj = adj(1:12,1:12);
+%     %% remove zn 4-7 incoming except from 2
+%     allow=[2,4,5,6,7];
+%     for it = 1:num
+%         if ~ismember(it,allow)
+%             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+%         end
+%     end
+% %     adj=adj-diag(diag(adj));
+%     
+%     if sum(adj(:))>0
+%         adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
+%     end
+% 
+%     bweight=.01;
+%     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
+% 
+%     L=-adj + diag(sum(adj,2));
+% 
+%     %% convert L into adj (sort of)
+%     L=L-diag(diag(L)); 
+% end
+
+function [L] = adj2L_snap2zones_foodloc(adj,num)
+    % 2 to 4-7 = 2 to 4-7 13-16
+    % 4-7 
+    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
+%     adj(4:7,4:7)=adj(4:7,4:7)+adj(4:7,13:16);    % reconnect 2 to 13-16
+    adj(2,13:16)=zeros(1,4);               % remove re-connected connections
+%     adj(4:7,13:16)=zeros(4,4);               % remove re-connected connections
+
     %% remove zn 4-7 incoming except from 2
-    allow=[2,4,5,6,7];
+    allow=[2];%,4,5,6,7];
     for it = 1:num
         if ~ismember(it,allow)
+            if num == 16
+                adj(it,13:16)=adj(it,4:7)+adj(it,13:16);    % reconnect to 13-16
+            end
             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end
-    adj=adj-diag(diag(adj));
     
     if sum(adj(:))>0
         adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
@@ -119,7 +153,7 @@ function [L] = adj2L_snap2zones(adj,num)
 
     L=-adj + diag(sum(adj,2));
 
-    %% convert L into adj (sort of)
+    %% Remove diagonal - convert L into adj (sort of)
     L=L-diag(diag(L)); 
 end
 
