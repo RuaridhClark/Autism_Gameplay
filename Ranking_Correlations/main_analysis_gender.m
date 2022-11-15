@@ -1,8 +1,8 @@
 % 
 clear all
 num = 16;               % accurate = 16, snap-to = 12
-option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'plates'; % n_swipes for 'plates' or 'food' destinations
+option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
+destination = 'inter'; % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
 gender = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
@@ -20,11 +20,11 @@ elseif combine == 1
     load('subject_details_combine_ond.mat')
     subject_details = subject_details_combine;
     if num == 16
-%         extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
-        extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
+        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
     elseif num == 12
-%         extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
-        extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
+        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
     end
     ranked = [ranked;extra.ranked];
     nam_save = [nam_save,extra.nam_save];
@@ -216,7 +216,6 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
     
         if strcmp(destination,'plates')
             n_swipes(jj) = sum(adj(2,[4,5,6,7]));
-%             n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
         elseif strcmp(destination,'food')
             n_swipes(jj) = sum(adj(2,2));
 %             n_swipes(jj) = sum(adj(2,:));
@@ -224,6 +223,8 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
 % %             sv_2 = temp(2);
 %             temp(2)=0;
 %             n_swipes(jj) = sum(temp);
+        elseif strcmp(destination,'inter')
+            n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
         end
     end
 end
@@ -331,6 +332,9 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
 %         axis([28 74 0 120])
         axis([28 74 0 141])
 %         axis([28 74 0 60])
+        if strcmp(destination,'inter')
+        	axis([28 74 0 30])
+        end
     elseif option == 3
         axis([28 74 0 1])
     end
@@ -350,6 +354,9 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
         elseif strcmp(destination,'food')
             ylabel('No. of swipes (zone 2 only)','fontsize',14)
             nam = 'n_swipes_food_';
+        elseif strcmp(destination,'inter')
+            ylabel('No. of swipes (inter-plates)','fontsize',14)
+            nam = 'n_swipes_inter_';
         end
     elseif option == 2
         if num == 16
@@ -503,6 +510,8 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
             end
         elseif strcmp(destination,'food')
             ylabel('No. of swipes (zone 2 only)','fontsize',14)
+        elseif strcmp(destination,'inter')
+            ylabel('No. of swipes (inter-plate)','fontsize',14)
         end
     elseif option == 2
         if num == 16
@@ -519,6 +528,8 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
 
     if strcmp(destination,'food')
         axis([0.5 4.5 -3 164])
+    elseif strcmp(destination,'inter')
+        axis([0.5 4.5 0 30])
     elseif option == 2
         axis([0.5 4.5 -.3 .25])%.39])
     elseif option == 1
