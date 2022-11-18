@@ -1,16 +1,16 @@
 % 
 clear all
-num = 16;               % accurate = 16, snap-to = 12
+num = 12;               % accurate = 16, snap-to = 12
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'inter'; % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
-gender = '';     % '' or 'Male' or 'Female' or 'compare'
+destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+gender = 'Female';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
 
 [folder_loc,alt_folder_loc,file_loc,floc] = setup();
 tab_sev = readtable([floc,'\eCRF.csv']);
 
-[nam_save,~,ranked,~] = load_dataset(option,num,folder_loc);
+[nam_save,~,ranked,~] = load_dataset(option,num,folder_loc,destination);
 
 if combine == 0
     load('subject_details.mat')
@@ -20,11 +20,17 @@ elseif combine == 1
     load('subject_details_combine_ond.mat')
     subject_details = subject_details_combine;
     if num == 16
-        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
-%         extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
+        if strcmp(destination,'inter')
+            extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+        else
+            extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
+        end
     elseif num == 12
-        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
-%         extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
+        if strcmp(destination,'inter')
+            extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+        else
+            extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
+        end
     end
     ranked = [ranked;extra.ranked];
     nam_save = [nam_save,extra.nam_save];
@@ -96,7 +102,7 @@ function [folder_loc,alt_folder_loc,file_loc,floc] = setup()
     addpath(folder1,folder2,folder3,folder4,folder5,folder6)
 end
 
-function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc)
+function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,destination)
     saved = []; list = [];
 %     if option == 1 || option == 3     % volume
 %         if num == 16
@@ -106,11 +112,17 @@ function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc)
 %         end
 %     elseif option == 2  % proportion
     if num == 16
-%         load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate.mat'],'nam_save','ranked') % inter-plate sharing score
-        load([folder_loc,'\Ranking_Correlations\Data\accurate_2only.mat'],'nam_save','ranked')
+        if strcmp(destination,'inter')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate.mat'],'nam_save','ranked') % inter-plate sharing score
+        else
+            load([folder_loc,'\Ranking_Correlations\Data\accurate_2only.mat'],'nam_save','ranked')
+        end
     elseif num == 12
-%         load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
-        load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
+        if strcmp(destination,'inter')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
+        else
+            load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
+        end
     end
 %     end
 end
@@ -339,7 +351,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
 %         axis([28 74 0 120])
         axis([28 74 0 141])
 %         axis([28 74 0 60])
-        if strcmp(destination,'inter')
+        if strcmp(destination,'inter') 
         	axis([28 74 0 30])
         end
     elseif option == 3
@@ -354,7 +366,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
 %                 ylabel('No. of swipes (all)','fontsize',14)
                 nam = 'n_swipes_16_';
             elseif num == 12
-                ylabel('No. of swipes (snap-to-plate)','fontsize',14)
+                ylabel('No. of swipes','fontsize',14)
 %                 ylabel('No. of swipes (inter-plates)','fontsize',14)
                 nam = 'n_swipes_12_';
             end
@@ -362,7 +374,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
             ylabel('No. of swipes (zone 2 only)','fontsize',14)
             nam = 'n_swipes_food_';
         elseif strcmp(destination,'inter')
-            ylabel('No. of swipes (inter-plates)','fontsize',14)
+            ylabel('No. of swipes (+ inter-plate)','fontsize',14)
             nam = 'n_swipes_inter_';
         end
     elseif option == 2
@@ -371,8 +383,10 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
 %             ylabel('Sharing score (plates)','fontsize',14)
             nam = 'sharing_16_';
         elseif num == 12
-            ylabel('Sharing score (snap-to-plate)','fontsize',14)
-%             ylabel('Sharing score (inter-plates)','fontsize',14)
+            ylabel('Sharing score','fontsize',14)
+            if strcmp(destination,'inter')
+                ylabel('Sharing score (+ inter-plate)','fontsize',14)
+            end
             nam = 'sharing_12_';
         end
     elseif option == 3
@@ -512,7 +526,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
                 ylabel('No. of swipes (plates)','fontsize',14)
 %                 ylabel('No. of swipes (all)','fontsize',14)
             elseif num == 12
-                ylabel('No. of swipes (snap-to-plate)','fontsize',14)
+                ylabel('No. of swipes','fontsize',14)
 %                 ylabel('No. of swipes (inter-plates)','fontsize',14)
             end
         elseif strcmp(destination,'food')
@@ -524,8 +538,10 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
         if num == 16
             ylabel('Sharing score (plates)','fontsize',14)
         elseif num == 12
-            ylabel('Sharing score (snap-to-plate)','fontsize',14)
-%             ylabel('No. of swipes (inter-plates)','fontsize',14)
+            ylabel('Sharing score','fontsize',14)
+            if strcmp(destination,'inter')
+                ylabel('Sharing score (+ inter-plate)','fontsize',14)
+            end
         end
     elseif option == 3
         ylabel('Swipe accuracy ratio','fontsize',14)
@@ -535,7 +551,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
 
     if strcmp(destination,'food')
         axis([0.5 4.5 -3 164])
-    elseif strcmp(destination,'inter')
+    elseif strcmp(destination,'inter') && option == 1
         axis([0.5 4.5 0 30])
     elseif option == 2
         axis([0.5 4.5 -.3 .25])%.39])
@@ -606,6 +622,8 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
 
     if strcmp(destination,'food')
         saveas(gcf,['Figures/boxplot_food_',gender,'.png'])
+    elseif strcmp(destination,'inter')
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',gender,'.png'])       
     else
         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
     end
@@ -631,12 +649,11 @@ function [save_p] = significance_gender(results,sets)
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
         pval = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
         save_p(1,j) = pval;
-        if pval > .001
+%         if pval > .001
 %             text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 10)
-            text(0.05+(j-1)*1/4,1.03,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 10)
-        else
-            text(0.05+(j-1)*1/4,1.03,['p = ',sprintf('%1.1e', pval)],'Units','normalized','fontsize', 10)
-        end
+%         else
+%             text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.1e', pval)],'Units','normalized','fontsize', 10)
+%         end
     end
 end
 
@@ -692,10 +709,11 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
             axis([0 12 -5 141])
 %             axis([0 12 -5 173])
         elseif num == 12
-            axis([0 12 -5 141])
 %             axis([0 12 -5 173])
+            axis([0 12 -5 141])
         end
     elseif option == 2
+%         axis([0 12 -.3 .301])
         axis([0 12 -.3 .25])
     elseif option == 3
         axis([0 12 0 1])
@@ -707,7 +725,7 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     % height=30; n_stars = 1; drp = 1.75;
     % stars_line(n_stars,height,10,11,drp) % 3 stars,h,1,2,1
     box off
-    f.Position = [403,340,500,313];
+    f.Position = [403,340,574,313];
 %     f.Position = [403,340,400,313];
     xlabel('Gender')
 
@@ -717,7 +735,7 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
                 ylabel('No. of swipes (plates)','fontsize',14)
 %                 ylabel('No. of swipes (all)','fontsize',14)
             elseif num == 12
-                ylabel('No. of swipes (snap-to-plate)','fontsize',14)
+                ylabel('No. of swipes','fontsize',14)
             end
         elseif strcmp(destination,'food')
             ylabel('No. of swipes (zone 2 only)','fontsize',14)
@@ -726,8 +744,10 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
         if num == 16
             ylabel('Sharing score (plates)','fontsize',14)
         elseif num == 12
-            ylabel('Sharing score (snap-to-plate)','fontsize',14)
-%             ylabel('Sharing score (inter-plates)','fontsize',14)
+            ylabel('Sharing score','fontsize',14)
+            if strcmp(destination,'inter')
+                ylabel('Sharing score (+ inter-plate)','fontsize',14)
+            end
         end
     elseif option == 3
         ylabel('Swipe accuracy ratio','fontsize',14)
@@ -889,4 +909,11 @@ end
 %             end
 %         end
 %     end
-% end
+    if option == 1
+        textadd = 'swipes';
+    else
+        textadd = 'sharing';
+    end
+
+    saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
+end
