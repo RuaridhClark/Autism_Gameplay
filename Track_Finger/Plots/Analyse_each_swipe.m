@@ -1,7 +1,8 @@
 clear all
 folder1='H:\My Documents\MATLAB\Autism_MAIN\Create_adj';
 addpath(folder1)
-file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
+% file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
 load('swipes_all704.mat')
 
 for i = 1:704

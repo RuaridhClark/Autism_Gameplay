@@ -28,6 +28,8 @@ obj(14,1:4)=[311, 531, yl-523, yl-196];
 obj(15,1:4)=[533,753, yl-523, yl-196];
 obj(16,1:4)=[755, 1004, yl-523, yl-264];
 
+zone2_swipes = {};
+
 for i = 1:704
     close all
     swipe=swipe_save{i};
@@ -58,6 +60,7 @@ for i = 1:704
         adj = zeros(16,16);
               
         prev_tP =0;
+        swipe_lens = [];
         for m = 1 : length(swipe)
             prev_n = [];
             n=1;
@@ -94,6 +97,9 @@ for i = 1:704
                 end
                     
                 if ~isempty(prev_n) && ~isempty(nn)
+                    if prev_n == 2 && nn ==2
+                        swipe_lens = [swipe_lens,length(swipe{m})];
+                    end
                     adj(prev_n,nn)=adj(prev_n,nn)+1;
                     if prev_n == 2 || nn == 2
                         list = [list,m];
@@ -106,8 +112,10 @@ for i = 1:704
         end
     end
     
+    zone2_swipes{i} = swipe_lens;
+
     %% save adj
-    save([file_adj,'adj_obj_end_accurate2\',savename],'adj') 
+%     save([file_adj,'adj_obj_end_accurate2\',savename],'adj') 
     
 %     %% plot adj
 %     figure;spy(adj)

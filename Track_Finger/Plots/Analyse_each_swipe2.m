@@ -1,8 +1,8 @@
 clear all
-folder1 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj_110721';
-folder2 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
-addpath(folder1,folder2)
-file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
+folder1 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Data';
+addpath(folder1)
+% file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
 load('swipes_all704.mat')
 
 load('subject_details.mat','subject_details_776')
@@ -11,7 +11,7 @@ yl = 768;
 obj(1,1:4)=[19, 227, yl-752, yl-525];
 obj(2,1:4)=[234, 774, yl-678, yl-525];
 obj(3,1:4)=[781, 1004, yl-752, yl-525];
-obj(4,1:4)=[101, 101+131, yl-400-96, yl-350]; 
+obj(4,1:4)=[101, 101+131, yl-400-96, yl-400]; 
 obj(5,1:4)=[325,325+131, yl-400-96, yl-400];   
 obj(6,1:4)=[551, 551+131, yl-400-96, yl-400];  
 obj(7,1:4)=[776, 776+131, yl-400-96, yl-400];   
@@ -25,7 +25,7 @@ obj(14,1:4)=[311, 531, yl-523, yl-196];
 obj(15,1:4)=[533,753, yl-523, yl-196];
 obj(16,1:4)=[755, 1004, yl-523, yl-264];
 
-for i = 402%:704   % 704 participants
+for i = 1%:704   % 704 participants
 %     i=705-j;
     close all
     swipe=swipe_save{i};
@@ -60,9 +60,9 @@ for i = 402%:704   % 704 participants
 %             sname = ['TD ',nam_save{i}];
 %             title(sname)
 %         else
-        if strcmp(cat,'ASD')
+        if strcmp(cat,'TD')
             colr = 'g';
-            sname = ['ASD ',nam_save{i}];
+            sname = [cat,' ',nam_save{i}];
             title(sname)
 %         end
             
@@ -89,10 +89,11 @@ for i = 402%:704   % 704 participants
                 n=n+1;
 
                 hold on
-                plot(tab.X(k),tab.Y(k),colr)
+                plot(tab.X(k),tab.Y(k),colr,LineWidth=2)
                 pause(.10)
             end
             axis off
+            axis equal
             saveas(gcf,['Accurate_pngs/',sname,'.png'])
         end
     end
