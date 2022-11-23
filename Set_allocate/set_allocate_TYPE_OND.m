@@ -1,5 +1,5 @@
 function [sets,other] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved)
-    sets = {[] [] [] [] []};
+    sets = {[] [] [] [] [] []};
     other = [];
     for i = 1 : size(subject_details,1)
         [I] = name_id(subject_details{i,1},nam_save);
@@ -12,6 +12,10 @@ function [sets,other] = set_allocate_TYPE_OND(subject_details,OND_details,nam_sa
                     sets{2} = [sets{2},I];
                 elseif contains(OND_details{J,6},'Language')
                     sets{3} = [sets{3},I];
+%                 elseif contains(OND_details{J,6},'Language') && contains(OND_details{J,6},'delay')
+%                     sets{5} = [sets{5},I];
+%                 elseif contains(OND_details{J,6},'Language') && contains(OND_details{J,6},'disorder')
+%                     sets{6} = [sets{6},I];
 %                 elseif contains(OND_details{J,6},'Global')
 %                     sets{4} = [sets{4},I];
                 else

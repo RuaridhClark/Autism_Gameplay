@@ -1,9 +1,9 @@
 % 
 clear all
-num = 12;               % accurate = 16, snap-to = 12
+num = 16;               % accurate = 16, snap-to = 12
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
-gender = 'Female';     % '' or 'Male' or 'Female' or 'compare'
+destination = 'inter';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+gender = 'compare';     % '' or 'male' or 'female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
 
@@ -134,10 +134,10 @@ function [sets,months] = create_sets_months(subject_details,nam_save,saved,gende
     end
     if strcmp(severity,'on')
         [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
-    elseif strcmp(gender,'Male')
+    elseif strcmp(gender,'male')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(5:8);
-    elseif strcmp(gender,'Female')
+    elseif strcmp(gender,'female')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(1:4);
     elseif strcmp(gender,'compare')
@@ -371,7 +371,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
                 nam = 'n_swipes_12_';
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (zone 2 only)','fontsize',14)
+            ylabel('No. of swipes (food zone only)','fontsize',14)
             nam = 'n_swipes_food_';
         elseif strcmp(destination,'inter')
             ylabel('No. of swipes (+ inter-plate)','fontsize',14)
@@ -530,7 +530,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
 %                 ylabel('No. of swipes (inter-plates)','fontsize',14)
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (zone 2 only)','fontsize',14)
+            ylabel('No. of swipes (food zone only)','fontsize',14)
         elseif strcmp(destination,'inter')
             ylabel('No. of swipes (inter-plate)','fontsize',14)
         end
@@ -738,7 +738,9 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
                 ylabel('No. of swipes','fontsize',14)
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (zone 2 only)','fontsize',14)
+            ylabel('No. of swipes (food zone only)','fontsize',14)
+        elseif strcmp(destination,'inter')
+            ylabel('No. of swipes (inter-plate)','fontsize',14)
         end
     elseif option == 2
         if num == 16
@@ -757,6 +759,7 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     if strcmp(destination,'food')
         heights = 135.*ones(1,4);
         drp = 3;
+        drp2=1*drp/2;
     elseif option == 2
     %     heights = [.295,.345,.41,.295];
         heights = .25.*ones(1,4);
@@ -776,16 +779,23 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     end
  
     if strcmp(destination,'food')
-        stars_line_cmpr(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
-        stars_line_cmpr(2,heights(2),4,5,drp) % 3 stars,h,1,2,1
-        stars_line_cmpr(1,heights(3),7,8,drp) % 2 stars,h,1,3,2
-        stars_line_cmpr(3,heights(4),10,11,drp) % 2 stars,h,3,4,1
+%         stars_line_cmpr(3,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
+%         stars_line_cmpr(2,heights(2),4,5,drp,drp2) % 3 stars,h,1,2,1
+%         stars_line_cmpr(1,heights(3),7,8,drp,drp2) % 2 stars,h,1,3,2
+%         stars_line_cmpr(3,heights(4),10,11,drp,drp2) % 2 stars,h,3,4,1
     else
         stars_line_cmpr(2,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
 %         stars_line_cmpr(2,heights(2),4,5,drp,drp2) % 3 stars,h,1,2,1
 %         stars_line_cmpr(3,heights(3),7,8,drp) % 2 stars,h,1,3,2
 %         stars_line_cmpr(2,heights(4),10,11,drp,drp2) % 2 stars,h,3,4,1
     end
+    if option == 1
+        textadd = 'swipes';
+    else
+        textadd = 'sharing';
+    end
+
+    saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -909,11 +919,4 @@ end
 %             end
 %         end
 %     end
-    if option == 1
-        textadd = 'swipes';
-    else
-        textadd = 'sharing';
-    end
-
-    saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
-end
+    

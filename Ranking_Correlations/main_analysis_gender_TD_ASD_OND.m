@@ -1,7 +1,7 @@
 % 
 clear all
 num = 12;               % accurate = 16, snap-to = 12
-option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
+option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
 destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
 gender = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
@@ -161,17 +161,18 @@ function [sets] = rmv_frm_sets(sets,months,ranked)
     end
 end
 
-function [sets] = rmv_ADHD(sets,subject_details_776,nam_save,saved)
+function [sets] = rmv_ADHD(sets,subject_details,nam_save,saved)
     %%%  Remove ADHD
+    load('OND_details_+Krysiek.mat','OND_details')
     if length(sets)<8
-        load('OND_details.mat','OND_details')
-        [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+        [sets_OND] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
         curr_set = sets{3};
-        keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
+        keep = [sets_OND{6}];%[sets_OND{2},sets_OND{3},sets_OND{4}];
         sets{3}=curr_set(ismember(curr_set,keep));
+%         rmv = sets_OND{1};
+%         sets{3}=curr_set(~ismember(curr_set,rmv));
     else
-        load('OND_details.mat','OND_details')
-        [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+        [sets_OND] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
         curr_set = sets{3};
         keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
         sets{3}=curr_set(ismember(curr_set,keep));

@@ -11,7 +11,7 @@ load('swipes_all704.mat','nam_save')
 
 %% stack the adjs
 num =16;    % number of ipad zones (nodes)
-redirect = 0; % rewire snap-to-target zones
+redirect = 1; % rewire snap-to-target zones
 pert_init=-.80;
 
 saved = zeros(num,704);
