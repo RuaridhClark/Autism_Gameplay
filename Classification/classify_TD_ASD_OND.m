@@ -1,9 +1,9 @@
 % 
 clear all
 num = 12;               % accurate = 16, snap-to = 12
-option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = '';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
-gender = 'compare';     % '' or 'male' or 'female' or 'compare'
+option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
+destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+gender = 'male';     % '' or 'male' or 'female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
 
@@ -15,7 +15,7 @@ tab_sev = readtable([floc,'\eCRF.csv']);
 if combine == 0
     load('subject_details.mat')
     subject_details = subject_details_776;
-elseif combine == 1
+elseif combine == 1 || combine == 2
     addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_krysiek'
     load('subject_details_combine_ond.mat')
     subject_details = subject_details_combine;
@@ -75,7 +75,7 @@ if strcmp(gender,'compare') % compare male and female
 %         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',num2str(j),'.png'])
 %     end
 else                        % display all or male/female genders
-    for id = 1 : n        % TD, ASD, OND
+    for id = 1 : 3        % TD, ASD, OND
         if strcmp(severity,'on')
             sev_choice = id-1;
         else
@@ -256,8 +256,6 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
 %             n_swipes(jj) = sum(temp);
         elseif strcmp(destination,'inter')
             n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
-        elseif strcmp(destination,'total')
-            n_swipes(jj) = sum(adj(:));
         end
     end
 end
@@ -295,7 +293,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     mean(delta)
     % Plot the original data, linear fit, and 95% prediction interval y�2?.
     [~,Ind]=sort(x,'asc');
-    [r,p] = corr(x,y,'Type','Spearman');
+    [~,p] = corr(x,y,'Type','Spearman');
     
     if p<10.05
         linetype='-';
@@ -345,20 +343,16 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     end
 
     if p<0.001
-        text(0.05,.97+.025,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
         stars_only(3)
     elseif p<0.01
-        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
         stars_only(2)
     elseif p<0.05
-        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
         stars_only(1)
     elseif p<10%0.1
-        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
+        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
     end
     
     if option == 2
@@ -416,11 +410,11 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     if id == 1
         titletxt = 'TD';
     elseif sev_choice == 1
-        titletxt = '              ASD - Level 1';
+        titletxt = 'ASD - Level 1';
     elseif sev_choice == 2
-        titletxt = '              ASD - Level 2';
+        titletxt = 'ASD - Level 2';
     elseif sev_choice == 3
-        titletxt = '              ASD - Level 3';
+        titletxt = 'ASD - Level 3';
     elseif id == 2
         titletxt = 'ASD';
     elseif id == 3
@@ -440,8 +434,6 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
         saveas(gcf,['Figures/food_',nam,titletxt,'_',gender,'.png'])
     elseif sev_choice>0
         saveas(gcf,['Figures/severity_',nam,titletxt,'_',gender,'.png'])
-    elseif strcmp(destination,'inter')
-        saveas(gcf,['Figures/',nam,titletxt,'_',gender,'_inter.png'])
     else
         saveas(gcf,['Figures/',nam,titletxt,'_',gender,'.png'])
     end
@@ -503,7 +495,7 @@ end
 function [] = stars_only(n_stars)
     hold on
     gap =0.055;
-    x=0.18; y=1.03+.025;
+    x=0.18; y=1.03;
     if n_stars == 3
         text(x-gap,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
         text(x,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
@@ -656,15 +648,15 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
     %% Plot significance stars    
     auto_star_plot(ic,all_sets,save_p,combos,option)
 
-%     if strcmp(destination,'food')
-%         saveas(gcf,['Figures/boxplot_food_',gender,'.png'])
-%     elseif strcmp(destination,'inter')
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',gender,'.png'])     
-%     elseif strcmp(severity,'on')
-%         saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
-%     else
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
-%     end
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/boxplot_food_',gender,'.png'])
+    elseif strcmp(destination,'inter')
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',gender,'.png'])     
+    elseif strcmp(severity,'on')
+        saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
+    else
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
+    end
 end
 
 function [] = auto_star_plot(ic,all_sets,save_p,combos,option)

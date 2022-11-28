@@ -3,7 +3,7 @@ function [sets] = set_allocate(subject_details,nam_save,saved)
 %     OND = [];
     for i = 1 : size(subject_details,1)
         [I] = name_id(subject_details{i,1},nam_save);
-        if max(saved(:,I))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
+        if max(saved(:,i))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
             if strcmp(subject_details{i,5},'TD')
                 sets{1} = [sets{1},I];
             elseif strcmp(subject_details{i,5},'ASD')

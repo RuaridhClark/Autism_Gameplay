@@ -11,7 +11,7 @@ function [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,g
         end
 %         if ~isempty(Ind)
         if strcmp(gender,subject_details{i,4}) | strcmp(gender,'')
-            if max(saved(:,I))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
+            if max(saved(:,i))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
                 if strcmp(subject_details{i,5},'TD')
                     sets{1} = [sets{1},I];
                 elseif strcmp(subject_details{i,5},'ASD')
