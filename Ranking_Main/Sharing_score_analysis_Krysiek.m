@@ -118,6 +118,15 @@ function [L] = adj2L_snap2zones_foodloc(adj,num)
     adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
     adj(2,13:16)=zeros(1,4);               % remove re-connected connections
 
+%     %%% %%% %%% %%% TEMP check on the influence of inter-plate swipe removal
+%     adj(2,13:16)=zeros(1,4);               % remove re-connected connections
+%     %% remove re-connected connections
+%     adj(4,14:16)=zeros(1,3);
+%     adj(5,[13,15,16])=zeros(1,3);
+%     adj(6,[13,14,16])=zeros(1,3);
+%     adj(7,[13,14,15])=zeros(1,3);
+%     %%% %%% %%% %%%
+
     %% remove zn 4-7 incoming except from 2
     allow=[2];
     for it = 1:num

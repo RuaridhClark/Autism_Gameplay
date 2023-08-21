@@ -2,7 +2,7 @@
 clear all
 num = 12;               % accurate = 16, snap-to = 12
 option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'inter';   % n_swipes for 'plates', 'food' (food/table-zone) or 'inter' (inter-plates) destinations
+destination = 'plates';   % n_swipes for 'plates', 'food' (food/table-zone) or 'inter' (inter-plates) destinations
 sex = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
@@ -28,10 +28,10 @@ elseif combine == 1
     elseif num == 12
         if strcmp(destination,'inter')
 %             extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
-            extra = load([folder_loc,'\Ranking_Correlations\Data\test_SS_inter_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Data\nodiag_SS_inter_Krysiek.mat'],'nam_save','ranked');
         else
 %             extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
-            extra = load([folder_loc,'\Ranking_Correlations\Data\test_SS_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Data\test_SS_Krysiek_nointer.mat'],'nam_save','ranked');
         end
     end
     ranked = [ranked;extra.ranked];
@@ -156,7 +156,7 @@ function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,desti
             load([folder_loc,'\Ranking_Correlations\Data\test_SS_inter.mat'],'nam_save','ranked')
         else
 %             load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
-            load([folder_loc,'\Ranking_Correlations\Data\test_SS.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\test_SS_nointer.mat'],'nam_save','ranked')
         end
     end
 %     end
@@ -304,19 +304,31 @@ function [adj] = adj_snap2zones(adj,num)
         adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
         adj(it,13:16)=zeros(1,4);                     % remove non-food connections
     end
-%     adj = adj(1:12,1:12);
+
+%     %% remove zn 4-7 incoming except from 2
+%     allow=[2];%,4,5,6,7];
+%     for it = 1:num
+%         if ~ismember(it,allow)
+%             adj(it,13:16) = adj(it,4:7)+adj(it,13:16);
+%             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+%         end
+%     end
     %% remove zn 4-7 incoming except from 2
-    allow=[2];%,4,5,6,7];
+    allow=[2];
     for it = 1:num
         if ~ismember(it,allow)
-            adj(it,13:16) = adj(it,4:7)+adj(it,13:16);
-            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
+            adjust = adj(it,4:7);
+            adj(it,13:16)=adj(it,13:16)+adjust;    % reconnect to 13-16
+            if ismember(it,4:7)
+                adj(it,it+9)=adj(it,it+9)-adjust(ismember(4:7,it));
+            end
+
+            % Remove connections (not self-loops)
+            list = 4:7;
+            listedit =list(~ismember(4:7,it));
+            adj(it,listedit)=zeros(1,length(listedit));                     % remove non-food connections
         end
     end
-%     adj=adj-diag(diag(adj));
-    
-    bweight=1;
-%     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end
 
 function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev_choice,n_swipes)
@@ -421,7 +433,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
         axis([28 74 -.3 .25])
     elseif option == 1
         if strcmp(destination,'inter') 
-        	axis([28 74 0 30])
+        	axis([28 74 0 50])
         elseif strcmp(destination,'food') 
             axis([28 74 0 164])
         else
@@ -494,15 +506,15 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
     f=gcf;
     f.Position = [403,340,330,313];
 
-%     if strcmp(destination,'food')
-%         saveas(gcf,['Figures/food_',nam,titletxt,'_',sex,'.png'])
-%     elseif sev_choice>0
-%         saveas(gcf,['Figures/severity_',nam,titletxt,'_',sex,'.png'])
-%     elseif strcmp(destination,'inter')
-%         saveas(gcf,['Figures/',nam,titletxt,'_',sex,'_inter.png'])
-%     else
-%         saveas(gcf,['Figures/',nam,titletxt,'_',sex,'.png'])
-%     end
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/food_',nam,titletxt,'_',sex,'.png'])
+    elseif sev_choice>0
+        saveas(gcf,['Figures/severity_',nam,titletxt,'_',sex,'.png'])
+    elseif strcmp(destination,'inter')
+        saveas(gcf,['Figures/',nam,titletxt,'_',sex,'_inter.png'])
+    else
+        saveas(gcf,['Figures/',nam,titletxt,'_',sex,'.png'])
+    end
 end
 
 function [] = stars_line(n_stars,height,strt,nd,drp2)
@@ -624,7 +636,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
         elseif num == 12
             ylabel('Sharing score','fontsize',14)
             if strcmp(destination,'inter')
-                ylabel('Sharing score (+ inter-plate)','fontsize',14)
+                ylabel('Sharing score (inter-plate)','fontsize',14)
             end
         end
     elseif option == 3
@@ -636,7 +648,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     if strcmp(destination,'food')
         axis([0.5 3.5 -3 164])
     elseif strcmp(destination,'inter') && option == 1
-        axis([0.5 3.5 0 30])
+        axis([0.5 3.5 0 50])
     elseif option == 2
         if strcmp(severity,'on')
             axis([0.5 4.5 -.3 .25])
@@ -716,15 +728,15 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     %% Plot significance stars    
     auto_star_plot(ic,all_sets,save_p,combos,option)
 
-%     if strcmp(destination,'food')
-%         saveas(gcf,['Figures/boxplot_food_',sex,'.png'])
-%     elseif strcmp(destination,'inter')
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',sex,'.png'])     
-%     elseif strcmp(severity,'on')
-%         saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
-%     else
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
-%     end
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/boxplot_food_',sex,'.png'])
+    elseif strcmp(destination,'inter')
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',sex,'.png'])     
+    elseif strcmp(severity,'on')
+        saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+    else
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+    end
 end
 
 function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
@@ -893,7 +905,7 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
         elseif num == 12
             ylabel('Sharing score','fontsize',14)
             if strcmp(destination,'inter')
-                ylabel('Sharing score (+ inter-plate)','fontsize',14)
+                ylabel('Sharing score (inter-plate)','fontsize',14)
             end
         end
     elseif option == 3
