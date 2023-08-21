@@ -1,11 +1,11 @@
-function [sets,other] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved)
+function [sets,other] = set_allocate_TYPE_OND_gender(subject_details,OND_details,nam_save,saved,gender)
     sets = {[] [] [] []};
     other = [];
     for i = 1 : size(subject_details,1)
         [I] = name_id(subject_details{i,1},nam_save);
         [J]=name_id(OND_details(:,2),subject_details{i,1});
         if max(saved(:,i))>0 & ~isempty(J)  %% removing subjects with no sharing game data
-            if strcmp(subject_details{i,5},'OND')
+            if strcmp(subject_details{i,5},'OND') && strcmp(subject_details{i,4},gender)
                 if contains(OND_details{J,6},'ADHD')
                     sets{1} = [sets{1},I];
                 elseif contains(OND_details{J,6},'Down')
@@ -22,12 +22,9 @@ function [sets,other] = set_allocate_TYPE_OND(subject_details,OND_details,nam_sa
 %                     [OND_details{J,6},OND_details{J,7}]
                     sets{3} = [sets{3},I];
                     other = [other,{OND_details{J,6}}];
-%                     if ~isempty(I)
-%                         [OND_details{J,2},' ',num2str(length(sets{3})),'',OND_details{J,6},' ',num2str(OND_details{J,3})]
-%                     end
+%                     OND_details{J,6}
                 end
-%                 OND_details{J,3}
-%                 subject_details{i,2}
+                
             end
         end
     end

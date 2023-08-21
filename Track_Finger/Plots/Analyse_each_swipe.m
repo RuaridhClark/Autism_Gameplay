@@ -5,7 +5,7 @@ addpath(folder1)
 file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
 load('swipes_all704.mat')
 
-for i = 1:704
+for i = 486:704
     close all
     swipe=swipe_save{i};
     skip=0;

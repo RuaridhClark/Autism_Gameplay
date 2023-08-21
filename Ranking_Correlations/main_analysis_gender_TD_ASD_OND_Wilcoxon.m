@@ -1,9 +1,9 @@
 % 
 clear all
-num = 12;               % accurate = 16, snap-to = 12
-option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = '';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
-gender = 'compare';     % '' or 'male' or 'female' or 'compare'
+num = 16;               % accurate = 16, snap-to = 12
+option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
+destination = 'inter';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+sex = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
 
@@ -39,7 +39,7 @@ end
 [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination);
 
 saved=ones(1,length(subject_details)); saved(list)=zeros(1,length(list)); % create list of 1s delete those without adjs
-[sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity);
+[sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity);
 
 sets = rmv_frm_sets(sets,months,ranked);
 
@@ -63,10 +63,10 @@ if strcmp(severity,'on')
     n=4;
 end
 
-if strcmp(gender,'compare') % compare male and female
-    [all_sets,grps] = create_grps_allsets_gender(results,sets);
-    boxplot_gender_cmpr(all_sets,grps,option,destination,num)
-    [save_p] = significance_gender(results',sets);
+if strcmp(sex,'compare') % compare male and female
+    [all_sets,grps] = create_grps_allsets_sex(results,sets);
+    boxplot_sex_cmpr(all_sets,grps,option,destination,num)
+    [save_p] = significance_sex(results',sets);
     saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'.png'])
 %     %% save
 %     figHandles = get(groot, 'Children');
@@ -74,14 +74,14 @@ if strcmp(gender,'compare') % compare male and female
 %         set(0, 'currentfigure', figHandles(5-j));
 %         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',num2str(j),'.png'])
 %     end
-else                        % display all or male/female genders
+else                        % display all or male/female sexs
     for id = 1 : n        % TD, ASD, OND
         if strcmp(severity,'on')
             sev_choice = id-1;
         else
             sev_choice = 0;
         end
-        plot_results(results',months,sets,id,option,destination,num,gender,sev_choice)
+        plot_results(results',months,sets,id,option,destination,num,sex,sev_choice)
     end
     
     [all_sets,grps] = create_grps_allsets(results,sets);
@@ -93,7 +93,7 @@ else                        % display all or male/female genders
         combos = combos([1,4,6],:);
     end
     
-    Plot_boxplots(all_sets,grps,option,destination,num,gender,severity,save_p,combos)
+    Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
 
 end
 
@@ -138,24 +138,24 @@ function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,desti
 %     end
 end
 
-function [sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity)
+function [sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity)
     [months] = list_AGE(subject_details,nam_save,saved);
     if size(months,1)<size(months,2)
         months=months';
     end
     if strcmp(severity,'on')
-        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
-    elseif strcmp(gender,'male')
+        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
+    elseif strcmp(sex,'Male')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(5:8);
-    elseif strcmp(gender,'female')
+    elseif strcmp(sex,'Female')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(1:4);
-    elseif strcmp(gender,'compare')
+    elseif strcmp(sex,'compare')
         [sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
     else
         [sets] = set_allocate(subject_details,nam_save,saved);
-%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
+%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
 %         sets{2} = setdiff(sets{2},sets_sev{4});
     end
 end
@@ -192,7 +192,7 @@ function [sets] = rmv_ADHD(sets,subject_details,nam_save,saved)
     end
 end
 
-function [all_sets,grps] = create_grps_allsets_gender(results,sets)
+function [all_sets,grps] = create_grps_allsets_sex(results,sets)
     iter=0; all_sets=[]; grps=[];
     order = [1,5,2,6,3,7];
     
@@ -255,7 +255,11 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
 %             temp(2)=0;
 %             n_swipes(jj) = sum(temp);
         elseif strcmp(destination,'inter')
-            n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
+            if num == 12
+                n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
+            elseif num == 16
+                n_swipes(jj) = sum(adj(4,[5,6,7,14,15,16]))+sum(adj(5,[4,6,7,13,15,16]))+sum(adj(6,[4,5,7,13,14,16]))+sum(adj(7,[4,5,6,13,14,15]));
+            end
         elseif strcmp(destination,'total')
             n_swipes(jj) = sum(adj(:));
         end
@@ -285,7 +289,7 @@ function [adj] = adj_snap2zones(adj,num)
 %     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end
 
-function [] = plot_results(results,months,sets,id,option,destination,num,gender,sev_choice)
+function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev_choice)
     figure;
     x=months(sets{id});
     y=results(sets{id});
@@ -365,12 +369,12 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
 %         axis([28 74 -.5 .25])
         axis([28 74 -.3 .25])
     elseif option == 1
-%        axis([26 83 min(y) max(y)])
-%         axis([28 74 0 120])
-        axis([28 74 0 141])
-%         axis([28 74 0 60])
         if strcmp(destination,'inter') 
-        	axis([28 74 0 30])
+        	axis([28 74 0 47])
+        elseif strcmp(destination,'food') 
+            axis([28 74 0 164])
+        else
+            axis([28 74 0 141])
         end
     elseif option == 3
         axis([28 74 0 1])
@@ -427,24 +431,24 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
         titletxt = 'OND';
     end
 
-    if strcmp(gender,'')
+    if strcmp(sex,'')
         title(titletxt)
     else
-        title([titletxt,' - ',gender])
+        title([titletxt,' - ',sex])
     end
 
     f=gcf;
     f.Position = [403,340,330,313];
 
-    if strcmp(destination,'food')
-        saveas(gcf,['Figures/food_',nam,titletxt,'_',gender,'.png'])
-    elseif sev_choice>0
-        saveas(gcf,['Figures/severity_',nam,titletxt,'_',gender,'.png'])
-    elseif strcmp(destination,'inter')
-        saveas(gcf,['Figures/',nam,titletxt,'_',gender,'_inter.png'])
-    else
-        saveas(gcf,['Figures/',nam,titletxt,'_',gender,'.png'])
-    end
+%     if strcmp(destination,'food')
+%         saveas(gcf,['Figures/food_',nam,titletxt,'_',sex,'.png'])
+%     elseif sev_choice>0
+%         saveas(gcf,['Figures/severity_',nam,titletxt,'_',sex,'.png'])
+%     elseif strcmp(destination,'inter')
+%         saveas(gcf,['Figures/',nam,titletxt,'_',sex,'_inter.png'])
+%     else
+%         saveas(gcf,['Figures/',nam,titletxt,'_',sex,'.png'])
+%     end
 end
 
 function [] = stars_line(n_stars,height,strt,nd,drp2)
@@ -516,7 +520,7 @@ function [] = stars_only(n_stars)
     end
 end
 
-function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity,save_p,combos)
+function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
     set(b,'LineWidth',1.5)
@@ -576,7 +580,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
     if strcmp(destination,'food')
         axis([0.5 3.5 -3 164])
     elseif strcmp(destination,'inter') && option == 1
-        axis([0.5 3.5 0 30])
+        axis([0.5 3.5 0 55])
     elseif option == 2
         if strcmp(severity,'on')
             axis([0.5 4.5 -.3 .25])
@@ -651,20 +655,20 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
     
     f.Position = [403,340,300,313];
 
-    title(gender)
+    title(sex)
 
     %% Plot significance stars    
     auto_star_plot(ic,all_sets,save_p,combos,option)
 
-%     if strcmp(destination,'food')
-%         saveas(gcf,['Figures/boxplot_food_',gender,'.png'])
-%     elseif strcmp(destination,'inter')
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',gender,'.png'])     
-%     elseif strcmp(severity,'on')
-%         saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
-%     else
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
-%     end
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/boxplot_food_',sex,'.png'])
+    elseif strcmp(destination,'inter')
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',sex,'.png'])     
+    elseif strcmp(severity,'on')
+        saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+    else
+        saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+    end
 end
 
 function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
@@ -708,18 +712,34 @@ function [save_p,combos] = significance_check(results,sets,n)
     for j = 1 : size(combos,1)
         num = combos(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
+        pval_kw = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
+
+        % Extract the data for the two groups
+        group1 = results(sets{num(1)});
+        group2 = results(sets{num(2)});
+        
+        % Perform the two-tailed unpaired Wilcoxon test
+        [pval, h] = ranksum(group1, group2);
         save_p(1,j) = pval;
     end
 end
 
-function [save_p] = significance_gender(results,sets)
+function [save_p] = significance_sex(results,sets)
     save_p = zeros(1,4);
-    numopt = [1,5;2,6;3,7];
-    for j = 1 : 3
+%     numopt = [1,5;2,6;3,7];
+    numopt = nchoosek([1,5,2,6,3,7],2);
+    for j = 1 : length(numopt)
         num=numopt(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
+        pval_kw = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
+
+        % Extract the data for the two groups
+        group1 = results(sets{num(1)});
+        group2 = results(sets{num(2)});
+        
+        % Perform the two-tailed unpaired Wilcoxon test
+        [pval, h] = ranksum(group1, group2);
+
         save_p(1,j) = pval;
 %         if pval > .001
 %             text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 10)
@@ -729,7 +749,7 @@ function [save_p] = significance_gender(results,sets)
     end
 end
 
-% function [save_p] = significance_gender_separate(results,sets)
+% function [save_p] = significance_sex_separate(results,sets)
 %     save_p = zeros(1,4);
 %     numopt = [1,5;2,6;3,7;4,8];
 %     figHandles = get(groot, 'Children');
@@ -748,7 +768,7 @@ end
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
+function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
 
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
@@ -796,7 +816,7 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     box off
     f.Position = [403,340,574,313];
 %     f.Position = [403,340,400,313];
-    xlabel('Gender')
+    xlabel('Sex')
 
     if option == 1
         if strcmp(destination,'plates')
@@ -860,7 +880,13 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
         textadd = 'sharing';
     end
 
-    saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
+%     if strcmp(destination,'inter')
+%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'_inter.png'])
+%     elseif strcmp(destination,'food')
+%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'_food.png'])
+%     else
+%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
+%     end
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

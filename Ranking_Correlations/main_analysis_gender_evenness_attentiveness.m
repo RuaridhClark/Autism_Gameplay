@@ -1,9 +1,9 @@
 % 
 clear all
-num = 16;               % accurate = 16, snap-to = 12
-option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'inter';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
-gender = 'compare';     % '' or 'male' or 'female' or 'compare'
+num = 12;               % accurate = 16, snap-to = 12
+option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
+destination = 'inter';   % n_swipes for 'plates', 'food' (food/table-zone) or 'inter' (inter-plates) destinations
+sex = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
 
@@ -27,19 +27,41 @@ elseif combine == 1
         end
     elseif num == 12
         if strcmp(destination,'inter')
-            extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+%             extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+            extra = load([folder_loc,'\Ranking_Correlations\Data\test_SS_inter_Krysiek.mat'],'nam_save','ranked');
         else
-            extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
+%             extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Data\test_SS_Krysiek.mat'],'nam_save','ranked');
         end
     end
     ranked = [ranked;extra.ranked];
     nam_save = [nam_save,extra.nam_save];
 end
 
+%%% ADDED - semi-partial correlation input
+
+% inter only
+[nam_save2,~,~,~] = load_dataset(option,16,folder_loc,'inter');
+if num == 16
+    if strcmp(destination,'inter')
+        extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+    end
+elseif num == 12
+    if strcmp(destination,'inter')
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+        extra = load([folder_loc,'\Ranking_Correlations\Data\SharingScore_interplate_Krysiek.mat'],'nam_save','ranked');
+    end
+end
+nam_save2 = [nam_save2,extra.nam_save];
+[saved_swipes,~] = swipe_analysis(16,file_loc,nam_save2,'inter');
+% 
+% [saved_swipes,~] = swipe_analysis(num,file_loc,nam_save,'plates');
+% saved_swipes = saved_swipes + saved_swipes2;
+%%%
 [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination);
 
 saved=ones(1,length(subject_details)); saved(list)=zeros(1,length(list)); % create list of 1s delete those without adjs
-[sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity);
+[sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity);
 
 sets = rmv_frm_sets(sets,months,ranked);
 
@@ -58,10 +80,15 @@ elseif option == 3
     results = n_swipes./n_swipes12;
 end
 
-if strcmp(gender,'compare') % compare male and female
-    [all_sets,grps] = create_grps_allsets_gender(results,sets);
-    boxplot_gender_cmpr(all_sets,grps,option,destination,num)
-    [save_p] = significance_gender(results',sets);
+n=3;
+if strcmp(severity,'on')
+    n=4;
+end
+
+if strcmp(sex,'compare') % compare male and female
+    [all_sets,grps] = create_grps_allsets_sex(results,sets);
+    boxplot_sex_cmpr(all_sets,grps,option,destination,num)
+    [save_p] = significance_sex(results',sets);
     saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'.png'])
 %     %% save
 %     figHandles = get(groot, 'Children');
@@ -69,21 +96,27 @@ if strcmp(gender,'compare') % compare male and female
 %         set(0, 'currentfigure', figHandles(5-j));
 %         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',num2str(j),'.png'])
 %     end
-else                        % display all or male/female genders
-    for id = 1 : 4          % TD, ASD, OND, ONDE
+else                        % display all or male/female sexs
+    for id = 1 : n        % TD, ASD, OND
         if strcmp(severity,'on')
             sev_choice = id-1;
         else
             sev_choice = 0;
         end
-        plot_results(results',months,sets,id,option,destination,num,gender,sev_choice)
+        plot_results(results',months,sets,id,option,destination,num,sex,sev_choice,saved_swipes)
     end
     
     [all_sets,grps] = create_grps_allsets(results,sets);
+
+    [save_p,combos] = significance_check(results,sets,n);
+
+    if strcmp(severity,'on')
+        save_p = save_p([1,4,6]);
+        combos = combos([1,4,6],:);
+    end
     
-    Plot_boxplots(all_sets,grps,option,destination,num,gender,severity)
-    
-    [save_p,combos] = significance_check(results,sets);
+    Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -119,32 +152,34 @@ function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,desti
         end
     elseif num == 12
         if strcmp(destination,'inter')
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
+            load([folder_loc,'\Ranking_Correlations\Data\test_SS_inter.mat'],'nam_save','ranked')
         else
-            load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
+%             load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\test_SS.mat'],'nam_save','ranked')
         end
     end
 %     end
 end
 
-function [sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity)
+function [sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity)
     [months] = list_AGE(subject_details,nam_save,saved);
     if size(months,1)<size(months,2)
         months=months';
     end
     if strcmp(severity,'on')
-        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
-    elseif strcmp(gender,'male')
+        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
+    elseif strcmp(sex,'Male')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(5:8);
-    elseif strcmp(gender,'female')
+    elseif strcmp(sex,'Female')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(1:4);
-    elseif strcmp(gender,'compare')
+    elseif strcmp(sex,'compare')
         [sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
     else
         [sets] = set_allocate(subject_details,nam_save,saved);
-%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
+%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
 %         sets{2} = setdiff(sets{2},sets_sev{4});
     end
 end
@@ -161,17 +196,18 @@ function [sets] = rmv_frm_sets(sets,months,ranked)
     end
 end
 
-function [sets] = rmv_ADHD(sets,subject_details_776,nam_save,saved)
+function [sets] = rmv_ADHD(sets,subject_details,nam_save,saved)
     %%%  Remove ADHD
+    load('OND_details_+Krysiek.mat','OND_details')
     if length(sets)<8
-        load('OND_details.mat','OND_details')
-        [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+        [sets_OND] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
         curr_set = sets{3};
         keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
         sets{3}=curr_set(ismember(curr_set,keep));
+%         rmv = sets_OND{1};
+%         sets{3}=curr_set(~ismember(curr_set,rmv));
     else
-        load('OND_details.mat','OND_details')
-        [sets_OND] = set_allocate_TYPE_OND(subject_details_776,OND_details,nam_save,saved);
+        [sets_OND] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
         curr_set = sets{3};
         keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
         sets{3}=curr_set(ismember(curr_set,keep));
@@ -180,9 +216,9 @@ function [sets] = rmv_ADHD(sets,subject_details_776,nam_save,saved)
     end
 end
 
-function [all_sets,grps] = create_grps_allsets_gender(results,sets)
+function [all_sets,grps] = create_grps_allsets_sex(results,sets)
     iter=0; all_sets=[]; grps=[];
-    order = [1,5,2,6,3,7,4,8];
+    order = [1,5,2,6,3,7];
     
     for i = 1 : length(order)    
         iter = iter +1;
@@ -243,7 +279,19 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
 %             temp(2)=0;
 %             n_swipes(jj) = sum(temp);
         elseif strcmp(destination,'inter')
-            n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
+            if num == 12
+                n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
+            elseif num == 16
+                n_swipes(jj) = sum(adj(4,[5,6,7,14,15,16]))+sum(adj(5,[4,6,7,13,15,16]))+sum(adj(6,[4,5,7,13,14,16]))+sum(adj(7,[4,5,6,13,14,15]));
+            end
+        elseif strcmp(destination,'total')
+            n_swipes(jj) = sum(adj(:));
+        elseif strcmp(destination,'evenness')
+            n_swipes(jj) = std(adj(2,[4,5,6,7]))/sum(adj(2,[4,5,6,7]));
+        elseif strcmp(destination,'attentive')
+            n_swipes(jj) = sum(adj(2,[4,5,6,7]))/sum(adj(:));
+        elseif strcmp(destination,'diag')
+            n_swipes(jj) = sum(diag(adj));
         end
     end
 end
@@ -271,17 +319,38 @@ function [adj] = adj_snap2zones(adj,num)
 %     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end
 
-function [] = plot_results(results,months,sets,id,option,destination,num,gender,sev_choice)
+function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev_choice,n_swipes)
     figure;
-    x=months(sets{id});
+    x=months(sets{id});    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     y=results(sets{id});
+    z=n_swipes(sets{id})';
+%     x=z;
+%     x=z;
+%     x=z;
+%     y(z<2)=[];
+%     x(z<2)=[];
     [pf,S] = polyfit(x,y,2);
     % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
     [y_fit,delta] = polyval(pf,x,S);
     mean(delta)
     % Plot the original data, linear fit, and 95% prediction interval y�2?.
     [~,Ind]=sort(x,'asc');
-    [~,p] = corr(x,y,'Type','Spearman');
+
+    [r,p] = corr(x,y,'Type','Spearman');
+    
+    %%% Export data and header
+    header = {'age', 'sharing', 'n_swipes'};
+    
+%     vars1 = [x y n_swipes(sets{id})'];
+%     exportData = [header; num2cell(vars1)];
+%     writecell(exportData, ['vars',num2str(id),'.csv']);
+
+%     writematrix(vars1, ['vars',num2str(id),'.csv']);
+
+%     vars = [x y];
+%     [r,p] = partialcorr(vars, n_swipes(sets{id})','Type','Spearman');
+%     p = p(2);
+%     r = r(2);
     
     if p<10.05
         linetype='-';
@@ -331,28 +400,32 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     end
 
     if p<0.001
-        text(0.05,.97,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97+.025,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
         stars_only(3)
     elseif p<0.01
-        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
         stars_only(2)
     elseif p<0.05
-        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
         stars_only(1)
     elseif p<10%0.1
-        text(0.05,.97,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
     end
     
     if option == 2
 %         axis([28 74 -.5 .25])
         axis([28 74 -.3 .25])
     elseif option == 1
-%        axis([26 83 min(y) max(y)])
-%         axis([28 74 0 120])
-        axis([28 74 0 141])
-%         axis([28 74 0 60])
         if strcmp(destination,'inter') 
         	axis([28 74 0 30])
+        elseif strcmp(destination,'food') 
+            axis([28 74 0 164])
+        else
+            axis([28 74 0 141])
         end
     elseif option == 3
         axis([28 74 0 1])
@@ -371,11 +444,14 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
                 nam = 'n_swipes_12_';
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (food zone only)','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
             nam = 'n_swipes_food_';
         elseif strcmp(destination,'inter')
-            ylabel('No. of swipes (+ inter-plate)','fontsize',14)
+            ylabel('No. of swipes (inter-plate)','fontsize',14)
             nam = 'n_swipes_inter_';
+        elseif strcmp(destination,'evenness')
+            ylabel('Evenness metric','fontsize',14)
+            nam = 'n_swipes_even_';
         end
     elseif option == 2
         if num == 16
@@ -385,7 +461,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
         elseif num == 12
             ylabel('Sharing score','fontsize',14)
             if strcmp(destination,'inter')
-                ylabel('Sharing score (+ inter-plate)','fontsize',14)
+                ylabel('Sharing score (inter-plate)','fontsize',14)
             end
             nam = 'sharing_12_';
         end
@@ -398,37 +474,40 @@ function [] = plot_results(results,months,sets,id,option,destination,num,gender,
     if id == 1
         titletxt = 'TD';
     elseif sev_choice == 1
-        titletxt = 'ASD - Level 1';
+        titletxt = '              ASD - Level 1';
     elseif sev_choice == 2
-        titletxt = 'ASD - Level 2';
+        titletxt = '              ASD - Level 2';
     elseif sev_choice == 3
-        titletxt = 'ASD - Level 3';
+        titletxt = '              ASD - Level 3';
     elseif id == 2
         titletxt = 'ASD';
     elseif id == 3
         titletxt = 'OND';
-    elseif id == 4
-        titletxt = 'ONDE';
     end
 
-    if strcmp(gender,'')
+    if strcmp(sex,'')
         title(titletxt)
     else
-        title([titletxt,' - ',gender])
+        title([titletxt,' - ',sex])
     end
 
     f=gcf;
     f.Position = [403,340,330,313];
 
-    if strcmp(destination,'food')
-        saveas(gcf,['Figures/food_',nam,titletxt,'_',gender,'.png'])
-    else
-        saveas(gcf,['Figures/',nam,titletxt,'_',gender,'.png'])
-    end
+%     if strcmp(destination,'food')
+%         saveas(gcf,['Figures/food_',nam,titletxt,'_',sex,'.png'])
+%     elseif sev_choice>0
+%         saveas(gcf,['Figures/severity_',nam,titletxt,'_',sex,'.png'])
+%     elseif strcmp(destination,'inter')
+%         saveas(gcf,['Figures/',nam,titletxt,'_',sex,'_inter.png'])
+%     else
+%         saveas(gcf,['Figures/',nam,titletxt,'_',sex,'.png'])
+%     end
 end
 
-function [] = stars_line(n_stars,height,strt,nd,drp)
-    drp2 = 3.5*drp/2;
+function [] = stars_line(n_stars,height,strt,nd,drp2)
+%     drp2 = 3.5*drp/2;
+    drp = 2*drp2/3.5;
     shft = 0.105;
     hold on
     if n_stars == 3
@@ -482,7 +561,7 @@ end
 function [] = stars_only(n_stars)
     hold on
     gap =0.055;
-    x=0.18; y=1.03;
+    x=0.18; y=1.03+.025;
     if n_stars == 3
         text(x-gap,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
         text(x,y,'$$\star$$','Interpreter', 'latex','Units','normalized','FontSize',18)
@@ -495,7 +574,7 @@ function [] = stars_only(n_stars)
     end
 end
 
-function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity)
+function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
     set(b,'LineWidth',1.5)
@@ -517,8 +596,11 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
         scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.15,'jitter','on','jitterAmount',0.15);
     end
     
-    xticklabels({'TD','ASD','OND','ONDE'});
-%     xticklabels({'TD','ASD 1','ASD 2','ASD 3'});
+    if strcmp(severity,'on')
+        xticklabels({'TD','ASD 1','ASD 2','ASD 3'});
+    else
+        xticklabels({'TD','ASD','OND'});
+    end
     
     if option == 1 
         if strcmp(destination,'plates')
@@ -530,9 +612,11 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
 %                 ylabel('No. of swipes (inter-plates)','fontsize',14)
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (food zone only)','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
         elseif strcmp(destination,'inter')
             ylabel('No. of swipes (inter-plate)','fontsize',14)
+        elseif strcmp(destination,'evenness')
+            ylabel('Evenness metric','fontsize',14)
         end
     elseif option == 2
         if num == 16
@@ -550,53 +634,62 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
     box off
 
     if strcmp(destination,'food')
-        axis([0.5 4.5 -3 164])
+        axis([0.5 3.5 -3 164])
     elseif strcmp(destination,'inter') && option == 1
-        axis([0.5 4.5 0 30])
+        axis([0.5 3.5 0 30])
     elseif option == 2
-        axis([0.5 4.5 -.3 .25])%.39])
+        if strcmp(severity,'on')
+            axis([0.5 4.5 -.3 .25])
+        else
+            axis([0.5 3.5 -.3 .25])
+        end
     elseif option == 1
         if num == 16
-%             axis([0.5 4.5 -3 145])
-            axis([0.5 4.5 0 141])
+            if strcmp(severity,'on')
+                axis([0.5 4.5 0 141])
+            else
+                axis([0.5 3.5 0 141])
+            end
         elseif num == 12
-%             axis([0.5 4.5 -3 172])
-%             axis([0.5 4.5 -3 60])
-            axis([0.5 4.5 0 141])
+            if strcmp(severity,'on')
+                axis([0.5 4.5 0 141])
+            else
+                axis([0.5 3.5 0 141])
+            end
         end
     elseif option == 3
-        axis([0.5 4.5 0 1.2])
+        axis([0.5 3.5 0 1.2])
     end
 
-    %% Plot significance stars
-    if strcmp(destination,'food')
-        heights = [135,143,151,130];
-        drp = 3;
-    elseif strcmp(severity,'on')
-        if option == 2
-            heights = [.4,.35,.3];
-            drp = .0225;
-        elseif option == 1
-%             heights = [125,120,115];
-            heights = [155,147.5,140];
-            drp = 3;
-        end
-    elseif option == 2
-        heights = [.28,.33,.39,.28];%,.25];
-%         heights = [.41,.345,.45,.31];
-        drp = .02;
-    elseif option == 1
-        if num == 16
-            heights = [122,130,140,122];
-        elseif num == 12
-            heights = [155,162,171,155];
-        end
-        drp = 3;
-    elseif option == 3
-        heights = [1.05,1.105,1.17,1.05];
-        drp = 0.025;
-    end
- 
+%     %% Plot significance stars
+%     if strcmp(destination,'food')
+%         heights = [135,143,151,130];
+%         drp = 3;
+%     elseif strcmp(severity,'on')
+%         if option == 2
+%             heights = [.4,.35,.3];
+%             drp = .0225;
+%         elseif option == 1
+% %             heights = [125,120,115];
+%             heights = [155,147.5,140];
+%             drp = 3;
+%         end
+%     elseif option == 2
+%         heights = [.28,.33,.39,.28];%,.25];
+% %         heights = [.41,.345,.45,.31];
+%         drp = .02;
+%     elseif option == 1
+%         if num == 16
+%             heights = [122,130,140,122];
+%         elseif num == 12
+%             heights = [155,162,171,155];
+%         end
+%         drp = 3;
+%     elseif option == 3
+%         heights = [1.05,1.105,1.17,1.05];
+%         drp = 0.025;
+%     end
+%  
 %     if strcmp(destination,'food')
 %         stars_line(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
 %         stars_line(2,heights(2),1,3,drp) % 3 stars,h,1,2,1
@@ -618,36 +711,91 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity
     
     f.Position = [403,340,300,313];
 
-    title(gender)
+    title(sex)
 
-    if strcmp(destination,'food')
-        saveas(gcf,['Figures/boxplot_food_',gender,'.png'])
-    elseif strcmp(destination,'inter')
-        saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',gender,'.png'])       
-    else
-        saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
+    %% Plot significance stars    
+    auto_star_plot(ic,all_sets,save_p,combos,option)
+
+%     if strcmp(destination,'food')
+%         saveas(gcf,['Figures/boxplot_food_',sex,'.png'])
+%     elseif strcmp(destination,'inter')
+%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',sex,'.png'])     
+%     elseif strcmp(severity,'on')
+%         saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+%     else
+%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+%     end
+end
+
+function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
+    mv = zeros(1,4);
+    for i = 1:4
+        Ind=find(ic==i);
+        mv(i) = max(all_sets(Ind));
+    end
+
+    if option == 2
+        drp = max(mv)*0.175;
+    elseif option == 1
+        drp = max(mv)*0.05;
+    end
+    addh=drp*1.5;
+    h_save=0;
+    for i = 1 : length(save_p)
+        j = length(save_p)+1-i;
+%         j=i;
+        id1 = combos(j,1);
+        id2 = combos(j,2);
+        height = max([mv(id1:id2)])+addh;
+        height = max([h_save+addh,height]);
+        if save_p(j) < 0.001
+            stars_line(3,height,id1,id2,drp)
+        elseif save_p(j) < 0.01
+            stars_line(2,height,id1,id2,drp)
+        elseif save_p(j) < 0.05
+            stars_line(1,height,id1,id2,drp)
+        end
+        if save_p(j) < 0.05
+            h_save = height;
+        end
     end
 end
 
-function [save_p,combos] = significance_check(results,sets)
+function [save_p,combos] = significance_check(results,sets,n)
     % pairwise significance check
-    combos=nchoosek([1,2,3,4],2);
+    combos=nchoosek(1:n,2);
     save_p = zeros(1,size(combos,1));
     for j = 1 : size(combos,1)
         num = combos(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
+        pval_kw = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
+
+        % Extract the data for the two groups
+        group1 = results(sets{num(1)});
+        group2 = results(sets{num(2)});
+        
+        % Perform the two-tailed unpaired Wilcoxon test
+        [pval, h] = ranksum(group1, group2);
         save_p(1,j) = pval;
     end
 end
 
-function [save_p] = significance_gender(results,sets)
+function [save_p] = significance_sex(results,sets)
     save_p = zeros(1,4);
-    numopt = [1,5;2,6;3,7;4,8];
-    for j = 1 : 4
+%     numopt = [1,5;2,6;3,7];
+    numopt = nchoosek([1,5,2,6,3,7],2);
+    for j = 1 : length(numopt)
         num=numopt(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
+        pval_kw = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
+
+        % Extract the data for the two groups
+        group1 = results(sets{num(1)});
+        group2 = results(sets{num(2)});
+        
+        % Perform the two-tailed unpaired Wilcoxon test
+        [pval, h] = ranksum(group1, group2);
+
         save_p(1,j) = pval;
 %         if pval > .001
 %             text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 10)
@@ -657,7 +805,7 @@ function [save_p] = significance_gender(results,sets)
     end
 end
 
-% function [save_p] = significance_gender_separate(results,sets)
+% function [save_p] = significance_sex_separate(results,sets)
 %     save_p = zeros(1,4);
 %     numopt = [1,5;2,6;3,7;4,8];
 %     figHandles = get(groot, 'Children');
@@ -676,7 +824,7 @@ end
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
+function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
 
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
@@ -699,24 +847,21 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     xt(3:3:end)=[];
     hAx.XTick=xt;                   % clear some
     
-    entries ={'F','M','F','M','F','M','F','M'};
+    entries ={'F','M','F','M','F','M'};
     xticklabels(entries)
 
     if strcmp(destination,'food')
-        axis([0 12 -5 150])
+        axis([0 9 -5 150])
     elseif option == 1
         if num == 16
-            axis([0 12 -5 141])
-%             axis([0 12 -5 173])
+            axis([0 9 -5 141])
         elseif num == 12
-%             axis([0 12 -5 173])
-            axis([0 12 -5 141])
+            axis([0 9 -5 141])
         end
     elseif option == 2
-%         axis([0 12 -.3 .301])
-        axis([0 12 -.3 .25])
+        axis([0 9 -.3 .25])
     elseif option == 3
-        axis([0 12 0 1])
+        axis([0 9 0 1])
     end
     
     %% Plot significance stars
@@ -727,7 +872,7 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     box off
     f.Position = [403,340,574,313];
 %     f.Position = [403,340,400,313];
-    xlabel('Gender')
+    xlabel('Sex')
 
     if option == 1
         if strcmp(destination,'plates')
@@ -738,9 +883,9 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
                 ylabel('No. of swipes','fontsize',14)
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (food zone only)','fontsize',14)
-        elseif strcmp(destination,'inter')
-            ylabel('No. of swipes (inter-plate)','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
+        elseif strcmp(destination,'evenness')
+            ylabel('Evenness metric','fontsize',14)
         end
     elseif option == 2
         if num == 16
@@ -759,7 +904,6 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
     if strcmp(destination,'food')
         heights = 135.*ones(1,4);
         drp = 3;
-        drp2=1*drp/2;
     elseif option == 2
     %     heights = [.295,.345,.41,.295];
         heights = .25.*ones(1,4);
@@ -778,145 +922,29 @@ function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
         drp = 0.025;
     end
  
-    if strcmp(destination,'food')
-%         stars_line_cmpr(3,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
-%         stars_line_cmpr(2,heights(2),4,5,drp,drp2) % 3 stars,h,1,2,1
-%         stars_line_cmpr(1,heights(3),7,8,drp,drp2) % 2 stars,h,1,3,2
-%         stars_line_cmpr(3,heights(4),10,11,drp,drp2) % 2 stars,h,3,4,1
-    else
-        stars_line_cmpr(2,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
-%         stars_line_cmpr(2,heights(2),4,5,drp,drp2) % 3 stars,h,1,2,1
-%         stars_line_cmpr(3,heights(3),7,8,drp) % 2 stars,h,1,3,2
-%         stars_line_cmpr(2,heights(4),10,11,drp,drp2) % 2 stars,h,3,4,1
-    end
+%     if strcmp(destination,'food')
+%         stars_line_cmpr(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
+%         stars_line_cmpr(2,heights(2),4,5,drp) % 3 stars,h,1,2,1
+%         stars_line_cmpr(1,heights(3),7,8,drp) % 2 stars,h,1,3,2
+%     else
+%         stars_line_cmpr(2,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
+% %         stars_line_cmpr(2,heights(2),4,5,drp,drp2) % 3 stars,h,1,2,1
+% %         stars_line_cmpr(3,heights(3),7,8,drp) % 2 stars,h,1,3,2
+% %         stars_line_cmpr(2,heights(4),10,11,drp,drp2) % 2 stars,h,3,4,1
+%     end
     if option == 1
         textadd = 'swipes';
     else
         textadd = 'sharing';
     end
 
-    saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
+%     if strcmp(destination,'inter')
+%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'_inter.png'])
+%     elseif strcmp(destination,'food')
+%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'_food.png'])
+%     else
+%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
+%     end
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function [ ] = boxplot_gender_cmpr_separate(all_sets,grps,option,destination,num)
-% 
-%     for ind = 1:4
-% %         [1,5,2,6,3,7,4,8];
-%         if ind ~= 1
-%             ref = (ind-1)*2 + ind;
-%             grps(grps==1)=20;
-%             grps(grps==ref)=1;
-%             grps(grps==20)=ref;
-% 
-%             grps(grps==2)=21;
-%             grps(grps==ref+1)=2;
-%             grps(grps==21)=ref+1;
-% 
-%             [~,I]=sort(grps,'ascend');
-%             grps=grps(I);
-%             all_sets=all_sets(I);
-%         end
-% 
-%         f(ind)=figure;
-%         b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
-%         set(b,'LineWidth',1.5)
-%     %     h = findobj(gca,'Tag','Box');
-%     
-%          %% Add scatter points
-%         hold on
-%         [~,~,ic]=unique(grps,'stable');
-%         
-%         colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
-%         for j = 1:12
-%             i=ceil(j/3);
-%             Ind_i=find(ic==j);
-%             scatter(ic(Ind_i),all_sets(Ind_i),[],colors(ind,:),'filled','MarkerFaceAlpha',0.08,'jitter','on','jitterAmount',0.15);
-%         end
-%         
-%         hAx=gca; 
-%         xt=hAx.XTick;                   % retrieve ticks
-%         xt(3:3:end)=[];
-%         hAx.XTick=xt;                   % clear some
-%         
-%         entries ={'F','M','F','M','F','M','F','M'};
-%         xticklabels(entries)
-%     
-%         if strcmp(destination,'food')
-%             axis([0 3 -5 150])
-%         elseif option == 1
-%             if num == 16
-%     %             axis([0 12 -5 140])
-%                 axis([0 3 -5 173])
-%             elseif num == 12
-%                 axis([0 3 -5 173])
-%             end
-%         elseif option == 2
-%             axis([0 3 -.3 .25])
-%         elseif option == 3
-%             axis([0 3 0 1])
-%         end
-%         
-%         box off
-%     %     f.Position = [403,340,574,313];
-%         f(ind).Position = [403,340,330,313];
-%         xlabel('Gender')
-%     
-%         if option == 1
-%             if strcmp(destination,'plates')
-%                 if num == 16
-%                     ylabel('No. of swipes (plates)','fontsize',14)
-%     %                 ylabel('No. of swipes (all)','fontsize',14)
-%                 elseif num == 12
-%                     ylabel('No. of swipes (snap-to-plate)','fontsize',14)
-%                 end
-%             elseif strcmp(destination,'food')
-%                 ylabel('No. of swipes (zone 2 only)','fontsize',14)
-%             end
-%         elseif option == 2
-%             if num == 16
-%                 ylabel('Sharing score (plates)','fontsize',14)
-%             elseif num == 12
-%                 ylabel('Sharing score (snap-to-plate)','fontsize',14)
-%     %             ylabel('Sharing score (inter-plates)','fontsize',14)
-%             end
-%         elseif option == 3
-%             ylabel('Swipe accuracy ratio','fontsize',14)
-%         end
-%     
-%         %% Plot significance stars
-%         if strcmp(destination,'food')
-%             heights = 135.*ones(1,4);
-%             drp = 3;
-%         elseif option == 2
-%         %     heights = [.295,.345,.41,.295];
-%             heights = .25.*ones(1,4);
-%             drp = .0275;
-%             drp2=1*drp/2;
-%         elseif option == 1
-%             if num == 16
-%                 heights = 122.*ones(1,4);
-%             elseif num == 12
-%                 heights = 155.*ones(1,4);
-%             end
-%             drp = 5;
-%             drp2=2*drp/2;
-%         elseif option == 3
-%             heights = 1.05.*ones(1,4);
-%             drp = 0.025;
-%         end
-% 
-%         if strcmp(destination,'food')
-%             stars_line_cmpr(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
-%             stars_line_cmpr(2,heights(2),4,5,drp) % 3 stars,h,1,2,1
-%             stars_line_cmpr(1,heights(3),7,8,drp) % 2 stars,h,1,3,2
-%             stars_line_cmpr(3,heights(4),10,11,drp) % 2 stars,h,3,4,1
-%         else
-%             if ind == 1
-%                 stars_line_cmpr(3,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
-%             elseif ind == 2 || ind == 4
-%                 stars_line_cmpr(2,heights(1),1,2,drp,drp2) % 3 stars,h,1,2,1
-%             end
-%         end
-%     end
-    

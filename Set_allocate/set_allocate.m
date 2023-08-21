@@ -9,11 +9,7 @@ function [sets] = set_allocate(subject_details,nam_save,saved)
             elseif strcmp(subject_details{i,5},'ASD')
                 sets{2} = [sets{2},I];
             elseif strcmp(subject_details{i,5},'OND')
-                if contains(nam_save,'Study3')
-                    1
-                end
                 sets{3} = [sets{3},I];
-%                 OND = [OND;subject_details{i,1}];
             elseif strcmp(subject_details{i,5},'ONDE')
                 sets{4} = [sets{4},I];
             end
