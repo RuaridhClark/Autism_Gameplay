@@ -2,10 +2,11 @@
 clear all
 num = 12;               % accurate = 16, snap-to = 12
 option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'plates';   % n_swipes for 'plates', 'food' (food/table-zone) or 'inter' (inter-plates) destinations
-sex = '';     % '' or 'Male' or 'Female' or 'compare'
+destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+gender = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
+save = '';        % 'on' or ''
 
 [folder_loc,alt_folder_loc,file_loc,floc] = setup();
 tab_sev = readtable([floc,'\eCRF.csv']);
@@ -16,55 +17,45 @@ if combine == 0
     load('subject_details.mat')
     subject_details = subject_details_776;
 elseif combine == 1
-    addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_extendmore'
+    addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_krysiek'
     load('subject_details_combine_ond.mat')
     subject_details = subject_details_combine;
     if num == 16
-        % if strcmp(destination,'inter')
-        %     extra = load([folder_loc,'\Ranking_Correlations\Data\extend_even_inter_Krysiek.mat'],'nam_save','ranked'); % evenness
-        % else
-        %     extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_accurate_Krysiek.mat'],'nam_save','ranked');
-        % end
+        if strcmp(destination,'inter')
+            extra = load([folder_loc,'\Ranking_Correlations\Data\extend_even_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+        else
+            extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
+        end
     elseif num == 12
         if strcmp(destination,'inter')
-            extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
         else
-            extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_Krysiek.mat'],'nam_save','ranked');
         end
     end
     ranked = [ranked;extra.ranked];
     nam_save = [nam_save,extra.nam_save];
 end
 
-%%% ADDED - semi-partial correlation input
-
-% % inter only
-% [nam_save2,~,~,~] = load_dataset(option,16,folder_loc,'inter');
-% if num == 16
-%     if strcmp(destination,'inter')
-%         extra = load([folder_loc,'\Ranking_Correlations\Data\extend_attentive_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
-%     end
-% elseif num == 12
-%     if strcmp(destination,'inter')
-%         extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter_Krysiek.mat'],'nam_save','ranked');
-%     end
-% end
-% nam_save2 = [nam_save2,extra.nam_save];
-% [saved_swipes,~] = swipe_analysis(16,file_loc,nam_save2,'inter');
-% % 
-% % [saved_swipes,~] = swipe_analysis(num,file_loc,nam_save,'plates');
-% % saved_swipes = saved_swipes + saved_swipes2;
-% %%%
 [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination);
 
 saved=ones(1,length(subject_details)); saved(list)=zeros(1,length(list)); % create list of 1s delete those without adjs
-[sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity);
+[ASD_sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity);
+ASD_sets = rmv_frm_sets(ASD_sets,months,ranked);
 
+load('OND_details_+Krysiek.mat','OND_details')
+if strcmp(gender,'')
+    [sets] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
+else
+    [sets] = set_allocate_TYPE_OND_gender(subject_details,OND_details,nam_save,saved,gender);
+end
 sets = rmv_frm_sets(sets,months,ranked);
 
-if ~strcmp(severity,'on')
-    sets = rmv_ADHD(sets,subject_details,nam_save,saved);
-end
+sets{1}=ASD_sets{2};
+
+% if ~strcmp(severity,'on')
+%     sets = rmv_ADHD(sets,subject_details,nam_save,saved);
+% end
 
 if option == 1
     results = n_swipes;
@@ -77,56 +68,39 @@ elseif option == 3
     results = n_swipes./n_swipes12;
 end
 
-n=3;
-if strcmp(severity,'on')
-    n=4;
-end
-
-if strcmp(sex,'compare') % compare male and female
-    [all_sets,grps] = create_grps_allsets_sex(results,sets);
-    boxplot_sex_cmpr(all_sets,grps,option,destination,num)
-    [save_p] = significance_sex(results',sets);
-    saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'.png'])
-%     %% save
-%     figHandles = get(groot, 'Children');
-%     for j = 1 : 4
-%         set(0, 'currentfigure', figHandles(5-j));
-%         saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',num2str(j),'.png'])
-%     end
-else                        % display all or male/female sexs
-    for id = 1 : n        % TD, ASD, OND
+if strcmp(gender,'compare') % compare male and female
+    [all_sets,grps] = create_grps_allsets_gender(results,sets);
+    boxplot_gender_cmpr(all_sets,grps,option,destination,num)
+    [save_p] = significance_gender(results',sets);
+else                        % display all or male/female genders
+    for id = 1 : 4         % TD, ASD, OND
         if strcmp(severity,'on')
             sev_choice = id-1;
         else
             sev_choice = 0;
         end
-        plot_results(results',months,sets,id,option,destination,num,sex,sev_choice,[])
+        plot_results(results',months,sets,id,option,destination,num,gender,sev_choice,save)
     end
     
     [all_sets,grps] = create_grps_allsets(results,sets);
 
-    [save_p,combos] = significance_check(results,sets,n);
-
-    if strcmp(severity,'on')
-        save_p = save_p([1,4,6]);
-        combos = combos([1,4,6],:);
-    end
+    [save_p,combos] = significance_check(results,sets);
     
-    Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
-
+    Plot_boxplots(all_sets,grps,option,destination,num,gender,severity,save_p,combos,save);
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [folder_loc,alt_folder_loc,file_loc,floc] = setup()
     folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
     alt_folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data';
-    file_loc = [folder_loc,'\adjs\adj_extendmore\']; % should match zone type
+    file_loc = [folder_loc,'\adjs\adj_obj_end_accurate\']; % should match zone type
     floc=[alt_folder_loc,'\IQ_severity'];
 
     folder1 = [folder_loc,'\Set_allocate'];
     folder2 = [folder_loc,'\Plots'];
     folder3 = [folder_loc,'\Create_adj'];
-    folder4 = [folder_loc,'\adjs\adj_extendmore'];
+    folder4 = [folder_loc,'\adjs\adj_obj_end_accurate'];
     folder5 = [folder_loc,'\Data'];
     folder6 = folder_loc;
     addpath(folder1,folder2,folder3,folder4,folder5,folder6)
@@ -134,40 +108,47 @@ end
 
 function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,destination)
     saved = []; list = [];
+%     if option == 1 || option == 3     % volume
+%         if num == 16
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
+%         elseif num == 12
+%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
+%         end
+%     elseif option == 2  % proportion
     if num == 16
-        % if strcmp(destination,'inter')
-        %     load([folder_loc,'\Ranking_Correlations\Data\extend_even_inter.mat'],'nam_save','ranked') % evenness
-        % else
-        %     load([folder_loc,'\Ranking_Correlations\Data\extend_SS_accurate.mat'],'nam_save','ranked')
-        % end
+        if strcmp(destination,'inter')
+            load([folder_loc,'\Ranking_Correlations\Data\extend_even.mat'],'nam_save','ranked') % inter-plate sharing score
+        else
+            load([folder_loc,'\Ranking_Correlations\Data\accurate_2only.mat'],'nam_save','ranked')
+        end
     elseif num == 12
         if strcmp(destination,'inter')
-            load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
         else
-            load([folder_loc,'\Ranking_Correlations\Data\SS_ext.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\extend_SS_Krysiek.mat'],'nam_save','ranked')
         end
     end
 %     end
 end
 
-function [sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity)
+function [sets,months] = create_sets_months(subject_details,nam_save,saved,gender,tab_sev,severity)
     [months] = list_AGE(subject_details,nam_save,saved);
     if size(months,1)<size(months,2)
         months=months';
     end
     if strcmp(severity,'on')
-        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
-    elseif strcmp(sex,'Male')
+        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
+    elseif strcmp(gender,'Male')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(5:8);
-    elseif strcmp(sex,'Female')
+    elseif strcmp(gender,'Female')
         [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(1:4);
-    elseif strcmp(sex,'compare')
+    elseif strcmp(gender,'compare')
         [sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
     else
         [sets] = set_allocate(subject_details,nam_save,saved);
-%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
+%         [sets_sev] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender);
 %         sets{2} = setdiff(sets{2},sets_sev{4});
     end
 end
@@ -204,7 +185,7 @@ function [sets] = rmv_ADHD(sets,subject_details,nam_save,saved)
     end
 end
 
-function [all_sets,grps] = create_grps_allsets_sex(results,sets)
+function [all_sets,grps] = create_grps_allsets_gender(results,sets)
     iter=0; all_sets=[]; grps=[];
     order = [1,5,2,6,3,7];
     
@@ -244,7 +225,7 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
         adj=zeros(num,num);
         file_id = ['subject_',nam_save{jj},'.mat'];
     
-        if isfile([file_loc,file_id]) || isfile(['C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_extendmore\\',file_id])
+        if isfile([file_loc,file_id]) || isfile(['C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_krysiek\',file_id])
             f_num = f_num + 1;
             load(file_id,'adj')
             if num == 12
@@ -267,48 +248,9 @@ function [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination)
 %             temp(2)=0;
 %             n_swipes(jj) = sum(temp);
         elseif strcmp(destination,'inter')
-            if num == 12
-                n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
-            elseif num == 16
-                n_swipes(jj) = sum(adj(4,[5,6,7,14,15,16]))+sum(adj(5,[4,6,7,13,15,16]))+sum(adj(6,[4,5,7,13,14,16]))+sum(adj(7,[4,5,6,13,14,15]));
-            end
+            n_swipes(jj) = sum(adj(4,[5,6,7]))+sum(adj(5,[4,6,7]))+sum(adj(6,[4,5,7]))+sum(adj(7,[4,5,6]));
         elseif strcmp(destination,'total')
             n_swipes(jj) = sum(adj(:));
-        elseif strcmp(destination,'evenness')
-%             V1 = sum(adj(2,[4,13]));
-%             V2 = sum(adj(2,[5,14]));
-%             V3 = sum(adj(2,[6,15]));
-%             V4 = sum(adj(2,[7,16]));
-%             n_swipes(jj) = std([V1,V2,V3,V4])/sum([V1,V2,V3,V4]); 
-            
-            n_swipes(jj) = std(adj(2,[4,5,6,7]))/sum(adj(2,[4,5,6,7]));
-% 
-%             V1 = sum(adj(5,[4,13]))+sum(adj(6,[4,13]))+sum(adj(7,[4,13])) + sum(adj(2,[4,13]));
-%             V2 = sum(adj(4,[5,14]))+sum(adj(6,[5,14]))+sum(adj(7,[5,14])) + sum(adj(2,[5,14]));
-%             V3 = sum(adj(4,[6,15]))+sum(adj(5,[6,15]))+sum(adj(7,[6,15])) + sum(adj(2,[6,15]));
-%             V4 = sum(adj(4,[7,16]))+sum(adj(5,[7,16]))+sum(adj(6,[7,16])) + sum(adj(2,[7,16]));
-% 
-%             n_swipes(jj) = std([V1,V2,V3,V4])/sum([V1,V2,V3,V4]);
-
-            if isnan(n_swipes(jj))
-                n_swipes(jj) = .11;
-            end
-        elseif strcmp(destination,'attentive')
-            adj = adj - diag(diag(adj));
-            n_swipes(jj) = sum(adj(2,[4,5,6,7]))/sum(adj(:));
-            
-%             V1 = sum(adj(5,[4,13]))+sum(adj(6,[4,13]))+sum(adj(7,[4,13]));% + sum(adj(2,[4,13]));
-%             V2 = sum(adj(4,[5,14]))+sum(adj(6,[5,14]))+sum(adj(7,[5,14]));% + sum(adj(2,[5,14]));
-%             V3 = sum(adj(4,[6,15]))+sum(adj(5,[6,15]))+sum(adj(7,[6,15]));% + sum(adj(2,[6,15]));
-%             V4 = sum(adj(4,[7,16]))+sum(adj(5,[7,16]))+sum(adj(6,[7,16]));% + sum(adj(2,[7,16]));
-%             n_swipes(jj) = sum([V1,V2,V3,V4])/sum(adj(:));
-
-            if isnan(n_swipes(jj))
-                n_swipes(jj) = 0;
-            end
-        elseif strcmp(destination,'diag')
-            n_swipes(jj) = sum(diag(adj));%/(sum(adj(:)));
-%             n_swipes(jj) = sum(adj(4,4))+sum(adj(5,5))+sum(adj(6,6))+sum(adj(7,7));
         end
     end
 end
@@ -321,76 +263,32 @@ function [adj] = adj_snap2zones(adj,num)
         adj(it,4:7)=adj(it,4:7)+adj(it,13:16);    % reconnect to 4-7
         adj(it,13:16)=zeros(1,4);                     % remove non-food connections
     end
-
-%     %% remove zn 4-7 incoming except from 2
-%     allow=[2];%,4,5,6,7];
-%     for it = 1:num
-%         if ~ismember(it,allow)
-%             adj(it,13:16) = adj(it,4:7)+adj(it,13:16);
-%             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
-%         end
-%     end
+%     adj = adj(1:12,1:12);
     %% remove zn 4-7 incoming except from 2
-    allow=[2];
+    allow=[2];%,4,5,6,7];
     for it = 1:num
         if ~ismember(it,allow)
-            adjust = adj(it,4:7);
-            adj(it,13:16)=adj(it,13:16)+adjust;    % reconnect to 13-16
-            if ismember(it,4:7)
-                adj(it,it+9)=adj(it,it+9)-adjust(ismember(4:7,it));
-            end
-
-            % Remove connections (not self-loops)
-            list = 4:7;
-            listedit =list(~ismember(4:7,it));
-            adj(it,listedit)=zeros(1,length(listedit));                     % remove non-food connections
+            adj(it,13:16) = adj(it,4:7)+adj(it,13:16);
+            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end
+%     adj=adj-diag(diag(adj));
+    
+    bweight=1;
+%     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 end
 
-function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev_choice,n_swipes)
+function [] = plot_results(results,months,sets,id,option,destination,num,gender,sev_choice,save)
     figure;
-    x=months(sets{id});    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    x=months(sets{id});
     y=results(sets{id});
-    % z=n_swipes(sets{id})';
-%     x=z;
-%     x(z==0)=[];
-%     y(z==0)=[];
     [pf,S] = polyfit(x,y,2);
     % Evaluate the first-degree polynomial fit in p at the points in x. Specify the error estimation structure as the third input so that polyval calculates an estimate of the standard error. The standard error estimate is returned in delta.
     [y_fit,delta] = polyval(pf,x,S);
     mean(delta)
     % Plot the original data, linear fit, and 95% prediction interval y�2?.
     [~,Ind]=sort(x,'asc');
-
     [r,p] = corr(x,y,'Type','Spearman');
-    
-%     %%% Export data and header
-%     header = {'age', 'sharing', 'n_swipes'};
-%     vars1 = [x y n_swipes(sets{id})'];
-%     exportData = [header; num2cell(vars1)];
-%     writecell(exportData, ['vars',num2str(id),'.csv']);
-
-%     type = {'TD','ASD','OND'};
-%     numopt = nchoosek(1:3,2);
-%     for i = 1 : length(numopt)
-%         x = results(sets{numopt(i,1)});
-%         y = results(sets{numopt(i,2)});
-%         header = {type{numopt(i,1)}, type{numopt(i,2)}, 'age'};
-%         vars1 = [x y months(sets{id})];
-%         exportData = [header; num2cell(vars1)];
-%         writecell(exportData, ['vars',num2str(id),'.csv']);
-%     end
-% 
-%     header = {'age', 'sharing', 'n_swipes'};
-%     vars1 = [x y n_swipes(sets{id})'];
-%     exportData = [header; num2cell(vars1)];
-%     writecell(exportData, ['vars',num2str(id),'.csv']);
-
-%     vars = [x y];
-%     [r,p] = partialcorr(vars, n_swipes(sets{id})','Type','Spearman');
-%     p = p(2);
-%     r = r(2);
     
     if p<10.05
         linetype='-';
@@ -413,15 +311,14 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
         end
     else
         if id == 1
-            clr = [0, 0.4470, 0.7410];
-%             clr = [.4 .4 .4];
-        elseif id == 2
+%             clr = [0.2464,	0.1569,	0.6847];
             clr = [0.8500, 0.3250, 0.0980];
+        elseif id == 2
+            clr = [0.1740, 0.5605,	0.9432];
         elseif id == 3
-%             clr = [0.9290, 0.6940, 0.1250];
-            clr = [0.47,0.67,0.19];
+            clr = [0.3548,	0.8016,	0.4669];
         elseif id == 4
-            clr = [0.4940, 0.1840, 0.5560];
+            clr = [0.9835,	0.8280,	0.1817];
         end
     end
 
@@ -448,24 +345,22 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
         text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
         stars_only(2)
     elseif p<0.05
-        text(0.05,.97+.025,['p = ',sprintf('%1.3f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
         text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
         stars_only(1)
     elseif p<10%0.1
-        text(0.05,.97+.025,['p = ',sprintf('%1.3f', p)],'Units','normalized','fontsize', 11)
+        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
         text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
     end
     
     if option == 2
 %         axis([28 74 -.5 .25])
-        axis([28 74 -.5 .3])
+        axis([28 74 -.3 .25])
     elseif option == 1
         if strcmp(destination,'inter') 
-        	axis([28 74 0 50])
-        elseif strcmp(destination,'food') 
-            axis([28 74 0 164])
-        elseif strcmp(destination,'total')
-            axis([28 74 0 650])
+        	axis([28 74 0 30])
+        elseif strcmp(destination,'total') 
+            axis([28 74 0 340])
         else
             axis([28 74 0 141])
         end
@@ -477,40 +372,35 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
     if option == 1
         if strcmp(destination,'plates')
             if num == 16
-                ylabel('No. of food-to-plate swipes','fontsize',14)
+                ylabel('No. of swipes (plates)','fontsize',14)
 %                 ylabel('No. of swipes (all)','fontsize',14)
                 nam = 'n_swipes_16_';
             elseif num == 12
-                ylabel('No. of food delivery swipes','fontsize',14)
+                ylabel('No. of swipes','fontsize',14)
 %                 ylabel('No. of swipes (inter-plates)','fontsize',14)
                 nam = 'n_swipes_12_';
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of zone 2 only swipes ','fontsize',14)
+            ylabel('No. of swipes (zone 2 only)','fontsize',14)
             nam = 'n_swipes_food_';
         elseif strcmp(destination,'inter')
-            ylabel('No. of inter-plate swipes','fontsize',14)
+            ylabel('No. of swipes (+ inter-plate)','fontsize',14)
             nam = 'n_swipes_inter_';
-        elseif strcmp(destination,'evenness')
-            ylabel('Standard deviation','fontsize',14)
-            nam = 'n_swipes_even_';
-        elseif strcmp(destination,'total')
-            ylabel('Total no. of swipes','fontsize',14)
-            nam = 'n_swipes_total_';
-        else
-            nam = 'other';
         end
     elseif option == 2
         if num == 16
-            ylabel('Direct sharing score','fontsize',14)
+            ylabel('Sharing score (plates)','fontsize',14)
 %             ylabel('Sharing score (plates)','fontsize',14)
             nam = 'sharing_16_';
         elseif num == 12
-            ylabel('Direct sharing score','fontsize',14)
+            ylabel('Sharing score','fontsize',14)
             if strcmp(destination,'inter')
-                ylabel('Indirect sharing score','fontsize',14)
+                ylabel('Sharing score (+ inter-plate)','fontsize',14)
             end
             nam = 'sharing_12_';
+        end
+        if strcmp(destination,'inter')
+            nam = [nam,'inter_'];
         end
     elseif option == 3
         ylabel('Swipe accuracy ratio','fontsize',14)
@@ -519,36 +409,36 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
 %     legend('subject','2nd order fit','Location','SouthEast','Orientation','horizontal','fontsize',14)
     
     if id == 1
-        titletxt = 'WP';
+        titletxt = 'ADHD';
     elseif sev_choice == 1
-        titletxt = '              ASD - Level 1';
+        titletxt = 'ASD - Level 1';
     elseif sev_choice == 2
-        titletxt = '              ASD - Level 2';
+        titletxt = 'ASD - Level 2';
     elseif sev_choice == 3
-        titletxt = '              ASD - Level 3';
+        titletxt = 'ASD - Level 3';
+    elseif id == 4
+        titletxt = 'Down syndrome';
     elseif id == 2
-        titletxt = 'ASD';
+        titletxt = '                   Language delay & disorder';
     elseif id == 3
-        titletxt = 'OND';
+        titletxt = 'Other';
     end
 
-    if strcmp(sex,'')
+    if strcmp(gender,'')
         title(titletxt)
     else
-        title([titletxt,' - ',sex])
+        title([titletxt,' - ',gender])
     end
 
     f=gcf;
     f.Position = [403,340,330,313];
 
-    if strcmp(destination,'food')
-        saveas(gcf,['Figures/food_',nam,titletxt,'_',sex,'.png'])
-    elseif sev_choice>0
-        saveas(gcf,['Figures/severity_',nam,titletxt,'_',sex,'.png'])
-    elseif strcmp(destination,'inter')
-        saveas(gcf,['Figures/',nam,titletxt,'_',sex,'_inter.png'])
-    else
-        saveas(gcf,['Figures/',nam,titletxt,'_',sex,'.png'])
+    if strcmp(save,'on')
+        if strcmp(destination,'food')
+            saveas(gcf,['Figures/OND/food_',nam,titletxt,'_',gender,'.png'])
+        else
+            saveas(gcf,['Figures/OND/',nam,titletxt,'_',gender,'.png'])
+        end
     end
 end
 
@@ -621,7 +511,7 @@ function [] = stars_only(n_stars)
     end
 end
 
-function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
+function [] = Plot_boxplots(all_sets,grps,option,destination,num,gender,severity,save_p,combos,save)
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
     set(b,'LineWidth',1.5)
@@ -634,7 +524,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     if strcmp(severity,'on')
         colors = [0, 0.4470, 0.7410;.93,.69,.13; .85,.33,.1; .64,.08,.18];
     else
-        colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
+        colors = [0.2464,	0.1569,	0.6847; 0.1740, 0.5605,	0.9432; 0.3548,	0.8016,	0.4669; 0.9835,	0.8280,	0.1817];
 %         colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
     end
         
@@ -643,11 +533,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
         scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.15,'jitter','on','jitterAmount',0.15);
     end
     
-    if strcmp(severity,'on')
-        xticklabels({'WP','ASD 1','ASD 2','ASD 3'});
-    else
-        xticklabels({'WP','ASD','OND'});
-    end
+    xticklabels({'ADHD','Language delay & disorder','Other','Down syndrome'});
     
     if option == 1 
         if strcmp(destination,'plates')
@@ -655,23 +541,21 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
                 ylabel('No. of swipes (plates)','fontsize',14)
 %                 ylabel('No. of swipes (all)','fontsize',14)
             elseif num == 12
-                ylabel('No. of food delivery swipes','fontsize',14)
+                ylabel('No. of swipes','fontsize',14)
 %                 ylabel('No. of swipes (inter-plates)','fontsize',14)
             end
         elseif strcmp(destination,'food')
             ylabel('No. of swipes (zone 2 only)','fontsize',14)
         elseif strcmp(destination,'inter')
             ylabel('No. of swipes (inter-plate)','fontsize',14)
-        elseif strcmp(destination,'evenness')
-            ylabel('Standard deviation','fontsize',14)
         end
     elseif option == 2
         if num == 16
-            ylabel('Direct sharing score','fontsize',14)
+            ylabel('Sharing score (plates)','fontsize',14)
         elseif num == 12
-            ylabel('Direct sharing score','fontsize',14)
+            ylabel('Sharing score','fontsize',14)
             if strcmp(destination,'inter')
-                ylabel('Indirect sharing score','fontsize',14)
+                ylabel('Sharing score (+ inter-plate)','fontsize',14)
             end
         end
     elseif option == 3
@@ -681,98 +565,39 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     box off
 
     if strcmp(destination,'food')
-        axis([0.5 3.5 -3 164])
+        axis([0.5 4.5 -3 164])
     elseif strcmp(destination,'inter') && option == 1
-        axis([0.5 3.5 0 50])
-    elseif strcmp(destination,'total')
-        axis([0.5 3.5 0 650])
+        axis([0.5 4.5 0 30])
     elseif option == 2
-        if strcmp(severity,'on')
-            axis([0.5 4.5 -.3 .25])
-        else
-            axis([0.5 3.5 -.3 .25])
-        end
+        axis([0.5 4.5 -.3 .25])%.39])
     elseif option == 1
         if num == 16
-            if strcmp(severity,'on')
-                axis([0.5 4.5 0 141])
-            else
-                axis([0.5 3.5 0 141])
-            end
+%             axis([0.5 4.5 -3 145])
+            axis([0.5 4.5 0 141])
         elseif num == 12
-            if strcmp(severity,'on')
-                axis([0.5 4.5 0 141])
-            else
-                axis([0.5 3.5 0 141])
-            end
+%             axis([0.5 4.5 -3 172])
+%             axis([0.5 4.5 -3 60])
+            axis([0.5 4.5 0 141])
         end
     elseif option == 3
-        axis([0.5 3.5 0 1.2])
+        axis([0.5 4.5 0 1.2])
     end
 
-%     %% Plot significance stars
-%     if strcmp(destination,'food')
-%         heights = [135,143,151,130];
-%         drp = 3;
-%     elseif strcmp(severity,'on')
-%         if option == 2
-%             heights = [.4,.35,.3];
-%             drp = .0225;
-%         elseif option == 1
-% %             heights = [125,120,115];
-%             heights = [155,147.5,140];
-%             drp = 3;
-%         end
-%     elseif option == 2
-%         heights = [.28,.33,.39,.28];%,.25];
-% %         heights = [.41,.345,.45,.31];
-%         drp = .02;
-%     elseif option == 1
-%         if num == 16
-%             heights = [122,130,140,122];
-%         elseif num == 12
-%             heights = [155,162,171,155];
-%         end
-%         drp = 3;
-%     elseif option == 3
-%         heights = [1.05,1.105,1.17,1.05];
-%         drp = 0.025;
-%     end
-%  
-%     if strcmp(destination,'food')
-%         stars_line(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
-%         stars_line(2,heights(2),1,3,drp) % 3 stars,h,1,2,1
-%         stars_line(1,heights(3),1,4,drp) % 2 stars,h,1,3,2
-%         stars_line(3,heights(4),2,4,drp) % 2 stars,h,3,4,1
-%     elseif strcmp(severity,'on')
-%         stars_line_cmpr(2,heights(1),1,2,drp) % 
-%         stars_line_cmpr(1,heights(2),2,3,drp) % 
-%         stars_line_cmpr(1,heights(3),3,4,drp) % 
-%     else
-%         stars_line(3,heights(1),1,2,drp) % 3 stars,h,1,2,1
-%         stars_line(3,heights(2),1,3,drp) % 3 stars,h,1,2,1
-%         stars_line(3,heights(3),2,4,drp) % 2 stars,h,1,3,2
-%         stars_line(3,heights(4),3,4,drp) % 2 stars,h,3,4,1
-% %         stars_line(1,heights(5),2,3,drp) 
-%     end
-       
-    % legend('TD','ASD','OND*','ONDE','Orientation','horizontal')
-    
     f.Position = [403,340,300,313];
 
-    title(sex)
+    title(gender)
 
     %% Plot significance stars    
     auto_star_plot(ic,all_sets,save_p,combos,option)
 
-    if strcmp(destination,'food')
-        saveas(gcf,['Figures/boxplot_food_',sex,'.png'])
-    elseif strcmp(destination,'inter')
-        saveas(gcf,['Figures/boxplot_option',num2str(option),'_inter_',num2str(num),'_',sex,'.png'])     
-    elseif strcmp(severity,'on')
-        saveas(gcf,['Figures/boxplot_severity_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
-    else
-        saveas(gcf,['Figures/boxplot_option',num2str(option),'_',num2str(num),'_',sex,'.png'])
+    if strcmp(save,'on')
+        if strcmp(destination,'food')
+            saveas(gcf,['Figures/OND/boxplot_food_',gender,'.png'])
+        elseif strcmp(destination,'inter')
+            saveas(gcf,['Figures/OND/boxplot_option',num2str(option),'_inter_',num2str(num),'_',gender,'.png'])       
+        else
+            saveas(gcf,['Figures/OND/boxplot_option',num2str(option),'_',num2str(num),'_',gender,'.png'])
+        end
     end
 end
 
@@ -784,9 +609,9 @@ function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
     end
 
     if option == 2
-        drp = max(mv)*0.175;
+        drp = max(mv)*0.2;
     elseif option == 1
-        drp = max(mv)*0.05;
+        drp = max(mv)*0.075;
     end
     addh=drp*1.5;
     h_save=0;
@@ -810,41 +635,25 @@ function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
     end
 end
 
-function [save_p,combos] = significance_check(results,sets,n)
+function [save_p,combos] = significance_check(results,sets)
     % pairwise significance check
-    combos=nchoosek(1:n,2);
+    combos=nchoosek([1,2,3,4],2);
     save_p = zeros(1,size(combos,1));
     for j = 1 : size(combos,1)
         num = combos(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval_kw = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
-
-        % Extract the data for the two groups
-        group1 = results(sets{num(1)});
-        group2 = results(sets{num(2)});
-        
-        % Perform the two-tailed unpaired Wilcoxon test
-        [pval, h] = ranksum(group1, group2);
+        pval = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
         save_p(1,j) = pval;
     end
 end
 
-function [save_p] = significance_sex(results,sets)
+function [save_p] = significance_gender(results,sets)
     save_p = zeros(1,4);
-%     numopt = [1,5;2,6;3,7];
-    numopt = nchoosek([1,5,2,6,3,7],2);
-    for j = 1 : length(numopt)
+    numopt = [1,5;2,6;3,7;4,8];
+    for j = 1 : 4
         num=numopt(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval_kw = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
-
-        % Extract the data for the two groups
-        group1 = results(sets{num(1)});
-        group2 = results(sets{num(2)});
-        
-        % Perform the two-tailed unpaired Wilcoxon test
-        [pval, h] = ranksum(group1, group2);
-
+        pval = kruskalwallis([results(sets{num(1)});results(sets{num(2)})],len_rankeds,'off');
         save_p(1,j) = pval;
 %         if pval > .001
 %             text(0.05+(j-1)*1/4,.92,['p = ',sprintf('%1.4f', pval)],'Units','normalized','fontsize', 10)
@@ -854,7 +663,7 @@ function [save_p] = significance_sex(results,sets)
     end
 end
 
-% function [save_p] = significance_sex_separate(results,sets)
+% function [save_p] = significance_gender_separate(results,sets)
 %     save_p = zeros(1,4);
 %     numopt = [1,5;2,6;3,7;4,8];
 %     figHandles = get(groot, 'Children');
@@ -873,7 +682,7 @@ end
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
+function [ ] = boxplot_gender_cmpr(all_sets,grps,option,destination,num)
 
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
@@ -900,17 +709,17 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
     xticklabels(entries)
 
     if strcmp(destination,'food')
-        axis([0 9 -5 150])
+        axis([0 12 -5 150])
     elseif option == 1
         if num == 16
-            axis([0 9 -5 141])
+            axis([0 12 -5 141])
         elseif num == 12
-            axis([0 9 -5 141])
+            axis([0 12 -5 141])
         end
     elseif option == 2
-        axis([0 9 -.3 .25])
+        axis([0 12 -.3 .25])
     elseif option == 3
-        axis([0 9 0 1])
+        axis([0 12 0 1])
     end
     
     %% Plot significance stars
@@ -921,7 +730,7 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
     box off
     f.Position = [403,340,574,313];
 %     f.Position = [403,340,400,313];
-    xlabel('Sex')
+    xlabel('Gender')
 
     if option == 1
         if strcmp(destination,'plates')
@@ -933,16 +742,14 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
             end
         elseif strcmp(destination,'food')
             ylabel('No. of swipes (zone 2 only)','fontsize',14)
-        elseif strcmp(destination,'evenness')
-            ylabel('Standard deviation','fontsize',14)
         end
     elseif option == 2
         if num == 16
-            ylabel('Direct sharing score','fontsize',14)
+            ylabel('Sharing score (plates)','fontsize',14)
         elseif num == 12
-            ylabel('Direct sharing score','fontsize',14)
+            ylabel('Sharing score','fontsize',14)
             if strcmp(destination,'inter')
-                ylabel('Indirect sharing score','fontsize',14)
+                ylabel('Sharing score (+ inter-plate)','fontsize',14)
             end
         end
     elseif option == 3
@@ -987,13 +794,7 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
         textadd = 'sharing';
     end
 
-%     if strcmp(destination,'inter')
-%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'_inter.png'])
-%     elseif strcmp(destination,'food')
-%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'_food.png'])
-%     else
-%         saveas(gcf,['Figures/compare_',num2str(num),'_',textadd,'.png'])
-%     end
+%     saveas(gcf,['Figures/OND/compare_',num2str(num),'_',textadd,'.png'])
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

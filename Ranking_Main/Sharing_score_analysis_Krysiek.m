@@ -6,7 +6,7 @@ folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitH
 folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj';
 folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
 addpath(folder4,folder6,folder7)
-file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_krysiek\'; % should match zone type
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_extendmore\'; %\adj_krysiek\'; % should match zone type
 
 load('swipes_Krysiek_ond.mat','nam_save')
 
@@ -20,7 +20,8 @@ lenN = length(nam_save);
 saved = zeros(num,lenN);
 ranked = zeros(lenN,1);
 
-type = 'plates';
+type = 'inter';
+label = '';
 
 for i = 1:lenN
     file_id = ['subject_',nam_save{i},'.mat'];
@@ -35,7 +36,7 @@ for i = 1:lenN
         elseif num == 16 && redirect == 1
 %             L = adj2L_snap2zones(adj,num);
             if strcmp(type,'plates')
-                L = adj2L_snap2zones_foodloc(adj,num);  % direct food delivery
+                L = adj2L_snap2zones_foodloc(adj,num,label);  % direct food delivery
             elseif strcmp(type,'inter')
                 L = adj2L_interplate(adj,num);    % inter-plate analysis
             end
@@ -73,9 +74,13 @@ for i = 1:lenN
 end
 
 if strcmp(type,'plates')
-    save('test_SS_Krysiek.mat','ranked','nam_save')
+    if strcmp(label,'accurate')
+        save('test_SS_accurate_Krysiek.mat','ranked','nam_save')
+    else
+        save('SS_ext_Krysiek.mat','ranked','nam_save')
+    end
 elseif strcmp(type,'inter')
-    save('test_SS_inter_Krysiek.mat','ranked','nam_save')
+    save('SS_ext_inter_Krysiek.mat','ranked','nam_save')
 end
 % save('temp_save_OBJ_end.mat','ranked','nam_save')
 
@@ -104,6 +109,7 @@ function [L] = adj2L(adj,num)
     end
 
     bweight=.01;
+%     bweight = sum(adj(:))/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
     L=-adj + diag(sum(adj,2));
@@ -112,20 +118,13 @@ function [L] = adj2L(adj,num)
     L=L-diag(diag(L)); 
 end
 
-function [L] = adj2L_snap2zones_foodloc(adj,num)
+function [L] = adj2L_snap2zones_foodloc(adj,num,label)
     % 2 to 4-7 = 2 to 4-7 13-16
     % 4-7 
-    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
-    adj(2,13:16)=zeros(1,4);               % remove re-connected connections
-
-%     %%% %%% %%% %%% TEMP check on the influence of inter-plate swipe removal
-%     adj(2,13:16)=zeros(1,4);               % remove re-connected connections
-%     %% remove re-connected connections
-%     adj(4,14:16)=zeros(1,3);
-%     adj(5,[13,15,16])=zeros(1,3);
-%     adj(6,[13,14,16])=zeros(1,3);
-%     adj(7,[13,14,15])=zeros(1,3);
-%     %%% %%% %%% %%%
+    if ~strcmp(label,'accurate')
+        adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % Collect all food delivery swipe
+        adj(2,13:16)=zeros(1,4);               % remove re-connected connections
+    end
 
     %% remove zn 4-7 incoming except from 2
     allow=[2];
@@ -144,29 +143,32 @@ function [L] = adj2L_snap2zones_foodloc(adj,num)
         end
     end
     
-%     adj=adj-diag(diag(adj));
+    adj = adj-diag(diag(adj));
+
+%     % reroute connections
+%     adj(:,2)=adj(:,2)+sum(adj,1)';
+%     adj(2,2)=0;
+
     if sum(adj(:))>0
-        adj = (adj./sum(adj(:)));%.*(100); %%%%%%%%%%%%%%%%%%%%%%% TEMP ADDITION Normalising
+        adj = (adj./sum(adj(:)));% Normalising
     end
 
     bweight=.01;
+%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
-    L = -adj +diag(diag(adj));% + diag(sum(adj,2));
-
-    %% Remove diagonal - convert L into adj (sort of)
-%     L=L-diag(diag(L)); 
+    L = -adj;
 end
 
 function [L] = adj2L_interplate(adj,num)
     % 2 to 4-7 = 2 to 4-7 13-16
     % 4-7 
-    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
-    % reconnect inter-plate swipes
-    adj(4,5:7)=adj(4,5:7)+adj(4,14:16);
-    adj(5,[4,6,7])=adj(5,[4,6,7])+adj(5,[13,15,16]);
-    adj(6,[4,5,7])=adj(6,[4,5,7])+adj(6,[13,14,16]);
-    adj(7,[4,5,6])=adj(7,[4,5,6])+adj(7,[13,14,15]);
+%     adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
+%     % reconnect inter-plate swipes
+%     adj(4,5:7)=adj(4,5:7)+adj(4,14:16);
+%     adj(5,[4,6,7])=adj(5,[4,6,7])+adj(5,[13,15,16]);
+%     adj(6,[4,5,7])=adj(6,[4,5,7])+adj(6,[13,14,16]);
+%     adj(7,[4,5,6])=adj(7,[4,5,6])+adj(7,[13,14,15]);
     %%% %%% %%% %%%
     adj(2,13:16)=zeros(1,4);               % remove re-connected connections
     %% remove re-connected connections
@@ -190,15 +192,16 @@ function [L] = adj2L_interplate(adj,num)
         end
     end
     
-%     adj=adj-diag(diag(adj));
+    adj=adj-diag(diag(adj));
     if sum(adj(:))>0
         adj = (adj./sum(adj(:)));% Normalising
     end
 
-    bweight=.01;
+%     bweight=.01;
+    bweight = 1/length(adj)^3;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
-    L = -adj+diag(diag(adj));% + diag(sum(adj,2));
+    L = -adj;%+diag(diag(adj));% + diag(sum(adj,2));
 
     %% Remove diagonal - convert L into adj (sort of)
 %     L=L-diag(diag(L)); 

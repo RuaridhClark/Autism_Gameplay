@@ -2,7 +2,7 @@
 clear all
 num = 16;               % accurate = 16, snap-to = 12
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'inter';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
 sex = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;

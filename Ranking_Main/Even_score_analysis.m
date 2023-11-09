@@ -6,7 +6,7 @@ folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitH
 folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj';
 folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
 addpath(folder4,folder6,folder7)
-file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_extendmore\'; %\adj_obj_end_accurate\'; % should match zone type
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_extendplate\'; %\adj_obj_end_accurate\'; % should match zone type
 
 load('swipes_all704.mat','nam_save')
 
@@ -18,7 +18,7 @@ pert_init=-.80;
 saved = zeros(num,704);
 ranked = zeros(704,1);
 
-type = 'inter';
+type = 'plates';
 label = '';
 
 for i = 1:704
@@ -42,27 +42,16 @@ for i = 1:704
         
         list = [4,5,6,7]; check=1; 
         pert =40*.01; prev=pert_init; tmp_pert=pert;
-        while check ~= 0
-            vec=zeros(1,num);
-            vec(list)=ones(1,length(list)).*pert;
-            P = -(L+diag(vec));
+        vec=zeros(1,num);
+        vec(list)=ones(1,length(list)).*pert;
+        P = -(L+diag(vec));
 
-            %% Save the sorted first eigenvector entries
-            [V,D]=eig(P');
-            [~,I]=sort(diag(real(D)),'desc');
-            [~,II]=sort(abs(V(:,I(1))),'desc');
+        %% Save the sorted first eigenvector entries
+        [V,D]=eig(P');
+        [~,I]=sort(diag(real(D)),'desc');
+        [~,II]=sort(abs(V(:,I(1))),'desc');
 
-            saved(:,i)=II;
-
-            [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert);
-            
-            if check == 1 || check == -1
-                [pert,prev,check] = pert_bisect(pert,prev,pert_init,tmp_pert,check);
-            elseif check == 10 || check == -10
-                [pert] = pert_iter(pert,check,pert_init);
-            end
-%             pert
-        end
+        pert=std(abs(V(4:7,I(1))))/sum(abs(V(4:7,I(1))));
         if ranked(i)==0
             ranked(i)=pert;%-pert_init;
         end
@@ -73,12 +62,12 @@ end
 
 if strcmp(type,'plates')
     if strcmp(label,'accurate')
-        save('SS_accurate.mat','ranked','nam_save')
+        save('extend_even_accurate.mat','ranked','nam_save')
     else
-        save('SS_ext.mat','ranked','nam_save')
+        save('extend_even.mat','ranked','nam_save')
     end
 elseif strcmp(type,'inter')
-    save('SS_ext_inter.mat','ranked','nam_save')
+    save('extend_even_inter.mat','ranked','nam_save')
 end
 % save('temp_save_OBJ_end.mat','ranked','nam_save')
 
@@ -137,32 +126,35 @@ function [L] = adj2L_snap2zones_foodloc(adj,num,label)
     end
 
     adj = adj-diag(diag(adj));
-    
-%     % reroute connections
-%     adj(:,2)=adj(:,2)+sum(adj,1)';
-%     adj(2,2)=0;
-
     if sum(adj(:))>0
         adj = (adj./sum(adj(:)));% Normalising
     end
 
     bweight=.01;
-%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
+    
+%     list=[2,4,5,6,7,13,14,15,16];
+%     for i = 1:length(list)
+%         adj(list(i),list(i))=0;
+%     end
 
-    L = -adj;
+    L = -adj;% +diag(diag(adj));
+%     L=-adj + diag(sum(adj,2));
+
+    %% Remove diagonal - convert L into adj (sort of)
+%     L=L-diag(diag(L)); 
 end
 
 function [L] = adj2L_interplate(adj,num)
     %% All food delivery version
     % 2 to 4-7 = 2 to 4-7 13-16
     % 4-7 
-%     adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
-%     % reconnect inter-plate swipes
-%     adj(4,5:7)=adj(4,5:7)+adj(4,14:16);
-%     adj(5,[4,6,7])=adj(5,[4,6,7])+adj(5,[13,15,16]);
-%     adj(6,[4,5,7])=adj(6,[4,5,7])+adj(6,[13,14,16]);
-%     adj(7,[4,5,6])=adj(7,[4,5,6])+adj(7,[13,14,15]);
+    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % reconnect 2 to 13-16
+    % reconnect inter-plate swipes
+    adj(4,5:7)=adj(4,5:7)+adj(4,14:16);
+    adj(5,[4,6,7])=adj(5,[4,6,7])+adj(5,[13,15,16]);
+    adj(6,[4,5,7])=adj(6,[4,5,7])+adj(6,[13,14,16]);
+    adj(7,[4,5,6])=adj(7,[4,5,6])+adj(7,[13,14,15]);
     %%% %%% %%% %%%
     adj(2,13:16)=zeros(1,4);               % remove re-connected connections
     %% remove re-connected connections
@@ -198,7 +190,6 @@ function [L] = adj2L_interplate(adj,num)
     end
 
     bweight=.01;
-%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
     L=-adj;%+ diag(diag(adj));% + diag(sum(adj,2));
