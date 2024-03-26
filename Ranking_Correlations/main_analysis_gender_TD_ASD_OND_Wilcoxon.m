@@ -1,8 +1,8 @@
 % 
 clear all
-num = 16;               % accurate = 16, snap-to = 12
-option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
-destination = 'plates';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
+num = 12;               % accurate = 16, snap-to = 12
+option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
+destination = 'inter';   % n_swipes for 'plates', 'food' or 'inter' (inter-plates) destinations
 sex = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
@@ -21,15 +21,15 @@ elseif combine == 1
     subject_details = subject_details_combine;
     if num == 16
         if strcmp(destination,'inter')
-            extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+            extra = load([folder_loc,'\Ranking_Correlations\Archive\OBJ_accurate_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
         else
-            extra = load([folder_loc,'\Ranking_Correlations\Data\accurate_2only_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Archive\accurate_2only_Krysiek.mat'],'nam_save','ranked');
         end
     elseif num == 12
         if strcmp(destination,'inter')
-            extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
+            extra = load([folder_loc,'\Ranking_Correlations\Archive\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
         else
-            extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
+            extra = load([folder_loc,'\Ranking_Correlations\Archive\snapto_2only_Krysiek.mat'],'nam_save','ranked');
         end
     end
     ranked = [ranked;extra.ranked];
@@ -124,15 +124,15 @@ function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,desti
 %     elseif option == 2  % proportion
     if num == 16
         if strcmp(destination,'inter')
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_accurate.mat'],'nam_save','ranked') % inter-plate sharing score
+            load([folder_loc,'\Ranking_Correlations\Archive\OBJ_accurate.mat'],'nam_save','ranked') % inter-plate sharing score
         else
-            load([folder_loc,'\Ranking_Correlations\Data\accurate_2only.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Archive\accurate_2only.mat'],'nam_save','ranked')
         end
     elseif num == 12
         if strcmp(destination,'inter')
-            load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
+            load([folder_loc,'\Ranking_Correlations\Archive\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
         else
-            load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Archive\snapto_2only.mat'],'nam_save','ranked')
         end
     end
 %     end
