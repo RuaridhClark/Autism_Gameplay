@@ -33,7 +33,6 @@ for i = 1:length(nam_save)
     file_id = [nam_save{i}];
     
     if isfile([file_loc,file_id,'.mat'])
-        colr = 'b';
         titlename = ['ID ',nam_save{i}];
         filename = [file_loc,file_id];
         savename = ['subject_',nam_save{i}];

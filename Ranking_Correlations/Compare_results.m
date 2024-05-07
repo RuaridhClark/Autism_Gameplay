@@ -1,5 +1,4 @@
-% Compare inter and plates for 
-
+% Sharing score difference
 load('results_inter.mat')
 results_i = results;
 load('results_plates.mat')

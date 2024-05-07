@@ -1,120 +1,151 @@
-% close all
-clear all
-list =[];
-file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
-load('swipes_all704.mat')
+% Clear workspace
+clear all;
 
-file_adj = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\';
+zone = defineZonePositions(); % define game zones
 
-yl = 768;
-obj(1,1:4)=[19, 227, yl-752, yl-510];
-obj(2,1:4)=[234, 774, yl-678, yl-510];
-obj(3,1:4)=[781, 1004, yl-752, yl-510];
-obj(4,1:4)=[106, 101+126, yl-400-96, yl-350]; 
-obj(5,1:4)=[330,325+126, yl-400-96, yl-350];  
-obj(6,1:4)=[556, 551+126, yl-400-96, yl-350]; 
-obj(7,1:4)=[781, 776+126, yl-400-96, yl-350];  
-obj(8,1:4)=[19, 252, yl-190, yl-27];
-obj(9,1:4)=[257, 420, yl-190, yl-27];
-obj(10,1:4)=[426, 589, yl-190, yl-27];
-obj(11,1:4)=[595, 758, yl-190, yl-27];
-obj(12,1:4)=[770, 1005, yl-190, yl-27];
-obj(13,1:4)=[19, 309, yl-508, yl-196];
-obj(14,1:4)=[311, 531, yl-508, yl-196];
-obj(15,1:4)=[533,753, yl-508, yl-196];
-obj(16,1:4)=[755, 1004, yl-508, yl-196];
+%%%% Trial data
+swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
+load('swipes_all704.mat');
+save_adj_loc = '..\adjs\';
+trial = 1; % switch set
 
-zone2_swipes = {};
+% Process each swipe
+for i = 1:length(nam_save)
+    swipe = swipe_save{i};
+    
+    [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc);
 
-for i = 1:704
-    close all
+    [adj] = adj_create(trial,zone,filename,swipe);
+
+    % Save adj
+    save([save_adj_loc,'adj_foodpile\',savename],'adj'); 
+end
+%%%%
+
+%%%% Pre-trial data
+swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
+load('swipes_Krysiek_ond.mat')
+trial = 0; % switch set
+
+% Process each swipe
+for i = 1:length(nam_save)
     swipe=swipe_save{i};
-    skip=0;
+
+    [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc);
+
+    [adj] = adj_create(trial,zone,filename,swipe);
+
+    % Save adj
+    save([save_adj_loc,'adj_foodpile\',savename],'adj'); 
+end
+%%%%
+
+%%%%%% Functions %%%%%%
+
+function zone = defineZonePositions()
+    % Initialize yl
+    yl = 768;
+    
+    % Initialize zone
+    zone = zeros(16,4);
+    zone(1,:)=[19, 227, yl-752, yl-510];
+    zone(2,:)=[234, 774, yl-678, yl-510];
+    zone(3,:)=[781, 1004, yl-752, yl-510];
+    zone(4,:)=[106, 101+126, yl-400-96, yl-350]; 
+    zone(5,:)=[330,325+126, yl-400-96, yl-350];  
+    zone(6,:)=[556, 551+126, yl-400-96, yl-350]; 
+    zone(7,:)=[781, 776+126, yl-400-96, yl-350];  
+    zone(8,:)=[19, 252, yl-190, yl-27];
+    zone(9,:)=[257, 420, yl-190, yl-27];
+    zone(10,:)=[426, 589, yl-190, yl-27];
+    zone(11,:)=[595, 758, yl-190, yl-27];
+    zone(12,:)=[770, 1005, yl-190, yl-27];
+    zone(13,:)=[19, 309, yl-508, yl-196];
+    zone(14,:)=[311, 531, yl-508, yl-196];
+    zone(15,:)=[533,753, yl-508, yl-196];
+    zone(16,:)=[755, 1004, yl-508, yl-196];
+end
+
+function [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc)
+    skip = 0;
     
     file_id = [nam_save{i},'\',nam_save{i},'.Sharing.TouchData.typed.csv'];
     
-    if isfile([file_loc,file_id])
-        colr = 'b';
-        titlename = ['ID ',nam_save{i}];
-        filename = [file_loc,file_id];
+    if isfile([swipe_data_loc,file_id])
+        filename = [swipe_data_loc,file_id];
         savename = ['subject_',nam_save{i}];
     else
         skip = 1;
     end
-    
-    %% Load tab missing!
+end
 
-    if skip == 0
-        tab=sortrows(readtable(filename),4); % sort table according to time
-        if iscell(tab.X(1)) %% Convert strings to doubles for X and Y
-            tab=sortrows(readtable(filename),14); % sort table according to time
-            tab.X=strrep(tab.X,',','.');
-            tab.Y=strrep(tab.Y,',','.');
-            tab.X=str2double(tab.X);
-            tab.Y=str2double(tab.Y);
+function [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc)
+    skip = 0;
+
+    file_id = [nam_save{i}];
+    
+    if isfile([swipe_data_loc,file_id,'.mat'])
+        filename = [swipe_data_loc,file_id,'.mat'];
+        savename = ['subject_',nam_save{i}];
+    else
+        skip = 1;
+    end
+end
+
+function [adj] = adj_create(trial,zone,filename,swipe)
+
+    if trial == 1
+        tab = sortrows(readtable(filename),4); % sort table according to time
+        if iscell(tab.X(1)) % Convert strings to doubles for X and Y
+            tab = sortrows(readtable(filename),14); % sort table according to time
+            tab.X = str2double(strrep(tab.X,',','.'));
+            tab.Y = str2double(strrep(tab.Y,',','.'));
         end
-        adj = zeros(16,16);
-              
-        prev_tP =0;
-        swipe_lens = [];
-        for m = 1 : length(swipe)
-            prev_n = [];
-            n=1;
-            while isempty(prev_n) && n<=length(swipe{m}) 
-                k = swipe{m}(n);
-                nn=[];
-                for jj = 1 : 16
-                    ii = 17-jj;
-                    if obj(ii,1)<tab.X(k) && tab.X(k)<obj(ii,2) && obj(ii,3)<tab.Y(k) && tab.Y(k)<obj(ii,4)
-                    	nn = ii; 
-                    end
+    elseif trial == 0
+        load(filename,'subject_table');
+        tab=sortrows(subject_table,8); % sort table according to time
+        tab = renamevars(tab,["x","y"],["X","Y"]);
+    end
+
+    adj = zeros(16,16);
+          
+    % Process each swipe
+    for m = 1 : length(swipe)
+        prev_n = [];
+        n = 1; % start from swipe m first contact point
+        while isempty(prev_n) && n <= length(swipe{m})
+            k = swipe{m}(n);
+            nn = [];
+            for jj = 1 : 16
+                ii = 17 - jj;
+                if zone(ii,1) < tab.X(k) && tab.X(k) < zone(ii,2) && zone(ii,3) < tab.Y(k) && tab.Y(k) < zone(ii,4)
+                    nn = ii; % current contact point is within the bounds of the zone ii
                 end
-                    
-                if n>1 && ~isempty(prev_n) && ~isempty(nn)
-%                     adj(prev_n,nn)=adj(prev_n,nn)+1;
-% %                     prev_n = nn;
-                elseif isempty(prev_n) && ~isempty(nn)
-                    prev_n = nn;
-                end
-                n=n+1;
             end
-            %% start from the back
-            nn=[];
-            n=-1;
-            while isempty(nn) && ~isempty(prev_n)
-                n=n+1;
-                k = swipe{m}(end-n);
-                
-                for jj = 1 : 16
-                    ii = 17-jj;
-                    if obj(ii,1)<tab.X(k) && tab.X(k)<obj(ii,2) && obj(ii,3)<tab.Y(k) && tab.Y(k)<obj(ii,4)
-                    	nn = ii; 
-                    end
+            
+            if ~isempty(nn)
+                prev_n = nn; % assign prev_n for first zone swipe enters
+            end
+            n = n + 1; % next swipe contact point
+        end
+     
+        nn = [];
+        n = -1; % Start from the end of swipe
+        while isempty(nn) && ~isempty(prev_n)
+            n = n + 1;
+            k = swipe{m}(end - n);
+            
+            for jj = 1 : 16
+                ii = 17 - jj;
+                if zone(ii,1) < tab.X(k) && tab.X(k) < zone(ii,2) && zone(ii,3) < tab.Y(k) && tab.Y(k) < zone(ii,4)
+                    nn = ii; % current contact point is within the bounds of the zone ii
                 end
-                    
-                if ~isempty(prev_n) && ~isempty(nn)
-                    if prev_n == 2 && nn ==2
-                        swipe_lens = [swipe_lens,length(swipe{m})];
-                    end
-                    adj(prev_n,nn)=adj(prev_n,nn)+1;
-                    if prev_n == 2 || nn == 2
-                        list = [list,m];
-                    end
-%                     prev_n = nn;
-                elseif isempty(prev_n) && ~isempty(nn)
-                    prev_n = nn;
-                end
+            end
+            
+            if ~isempty(prev_n) && ~isempty(nn)
+                adj(prev_n,nn) = adj(prev_n,nn) + 1; % Increment the adjacency matrix at (prev_n, nn)
+                prev_n = nn; % Update prev_n to nn
             end
         end
     end
-    
-    zone2_swipes{i} = swipe_lens;
-
-    %% save adj
-    save([file_adj,'adj_foodpile\',savename],'adj') 
-    
-%     %% plot adj
-%     figure;spy(adj)
-%     title(titlename)
-%     saveas(gcf,['spy',savename,'.png'])
 end
