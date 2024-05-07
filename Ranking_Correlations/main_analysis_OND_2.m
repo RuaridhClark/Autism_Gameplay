@@ -1,63 +1,38 @@
 % 
 clear all
-num = 16;               % accurate = 16, snap-to = 12
+num = 12;               % accurate = 16, snap-to = 12
 option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
 destination = 'plates';   % n_swipes for 'plates', 'food' (food/table-zone) or 'inter' (inter-plates) destinations
 sex = '';     % '' or 'Male' or 'Female' or 'compare'
 severity = '';        % 'on' or ''
 combine = 1;
+bweight = '_0_1';
 
 [folder_loc,alt_folder_loc,file_loc,floc] = setup();
 tab_sev = readtable([floc,'\eCRF.csv']);
 
-[nam_save,~,ranked,~] = load_dataset(option,num,folder_loc,destination);
-
-if combine == 0
-    load('subject_details.mat')
-    subject_details = subject_details_776;
-elseif combine == 1
-    addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_extendplate'
-    load('subject_details_combine_ond.mat')
-    subject_details = subject_details_combine;
-    if num == 16
-        if strcmp(destination,'inter')
-%             extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter_Krysiek_test.mat'],'nam_save','ranked'); % inter-plate sharing score
-            extra = load([folder_loc,'\Ranking_Correlations\Data\extend_even_inter_Krysiek.mat'],'nam_save','ranked'); % evenness
-        else
-            extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_accurate_Krysiek.mat'],'nam_save','ranked');
-        end
-    elseif num == 12
-        if strcmp(destination,'inter')
-%             extra = load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect_Krysiek2.mat'],'nam_save','ranked'); % inter-plate sharing score
-            extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter_Krysiek.mat'],'nam_save','ranked');
-        else
-%             extra = load([folder_loc,'\Ranking_Correlations\Data\snapto_2only_Krysiek.mat'],'nam_save','ranked');
-            extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_Krysiek.mat'],'nam_save','ranked');
-        end
-    end
-    ranked = [ranked;extra.ranked];
-    nam_save = [nam_save,extra.nam_save];
-end
+[nam_save,~,ranked,~] = load_dataset(option,num,folder_loc,destination,bweight);
+[nam_save,ranked,subject_details] = load_extra_data(nam_save,ranked,combine,option,num,folder_loc,destination,bweight);
 
 %%% ADDED - semi-partial correlation input
 
-% inter only
-[nam_save2,~,~,~] = load_dataset(option,16,folder_loc,'inter');
-if num == 16
-    if strcmp(destination,'inter')
-        extra = load([folder_loc,'\Ranking_Correlations\Data\extend_attentive_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
-    end
-elseif num == 12
-    if strcmp(destination,'inter')
-        extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter_Krysiek.mat'],'nam_save','ranked');
-    end
-end
-nam_save2 = [nam_save2,extra.nam_save];
-[saved_swipes,~] = swipe_analysis(16,file_loc,nam_save2,'inter');
-% 
-% [saved_swipes,~] = swipe_analysis(num,file_loc,nam_save,'plates');
-% saved_swipes = saved_swipes + saved_swipes2;
-%%%
+% % inter only
+% [nam_save2,~,~,~] = load_dataset(option,16,folder_loc,'inter');
+% if num == 16
+%     if strcmp(destination,'inter')
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\extend_attentive_Krysiek.mat'],'nam_save','ranked'); % inter-plate sharing score
+%     end
+% elseif num == 12
+%     if strcmp(destination,'inter')
+%         extra = load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter_Krysiek.mat'],'nam_save','ranked');
+%     end
+% end
+% nam_save2 = [nam_save2,extra.nam_save];
+% [saved_swipes,~] = swipe_analysis(16,file_loc,nam_save2,'inter');
+% % 
+% % [saved_swipes,~] = swipe_analysis(num,file_loc,nam_save,'plates');
+% % saved_swipes = saved_swipes + saved_swipes2;
+% %%%
 [n_swipes,list] = swipe_analysis(num,file_loc,nam_save,destination);
 
 saved=ones(1,length(subject_details)); saved(list)=zeros(1,length(list)); % create list of 1s delete those without adjs
@@ -144,32 +119,35 @@ function [folder_loc,alt_folder_loc,file_loc,floc] = setup()
     addpath(folder1,folder2,folder3,folder4,folder5,folder6)
 end
 
-function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,destination)
+function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,destination,bweight)
     saved = []; list = [];
-%     if option == 1 || option == 3     % volume
-%         if num == 16
-%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_accurate_bi.mat'],'list','nam_save','saved','ranked')
-%         elseif num == 12
-%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_end_12zones.mat'],'list','nam_save','saved','ranked')
-%         end
-%     elseif option == 2  % proportion
-    if num == 16
+    if num == 12 || num == 16
         if strcmp(destination,'inter')
-%             load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter_test.mat'],'nam_save','ranked') % inter-plate sharing score
-            load([folder_loc,'\Ranking_Correlations\Data\extend_even_inter.mat'],'nam_save','ranked') % evenness
+            load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter',bweight,'.mat'],'nam_save','ranked')
         else
-            load([folder_loc,'\Ranking_Correlations\Data\extend_SS_accurate.mat'],'nam_save','ranked')
-        end
-    elseif num == 12
-        if strcmp(destination,'inter')
-%             load([folder_loc,'\Ranking_Correlations\Data\OBJ_snapto_redirect2.mat'],'nam_save','ranked') % inter-plate sharing score
-            load([folder_loc,'\Ranking_Correlations\Data\extend_SS_inter.mat'],'nam_save','ranked')
-        else
-%             load([folder_loc,'\Ranking_Correlations\Data\snapto_2only.mat'],'nam_save','ranked')
-            load([folder_loc,'\Ranking_Correlations\Data\extend_SS.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\SS_ext',bweight,'.mat'],'nam_save','ranked')
         end
     end
-%     end
+end
+
+function [nam_save,ranked,subject_details] = load_extra_data(nam_save,ranked,combine,option,num,folder_loc,destination,bweight)
+    if combine == 0
+        load('subject_details.mat')
+        subject_details = subject_details_776;
+    elseif combine == 1
+        addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_foodpile'
+        load('subject_details_combine_ond.mat')
+        subject_details = subject_details_combine;
+        if num == 12 || num == 16
+            if strcmp(destination,'inter')
+                extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter_Krysiek',bweight,'.mat'],'nam_save','ranked');
+            else
+                extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_Krysiek',bweight,'.mat'],'nam_save','ranked');
+            end
+        end
+        ranked = [ranked;extra.ranked];
+        nam_save = [nam_save,extra.nam_save];
+    end
 end
 
 function [sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity)

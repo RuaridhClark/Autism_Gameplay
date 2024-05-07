@@ -4,7 +4,7 @@ num = 12;               % accurate = 16 (only for no. of swipes), snap-to = 12
 option = 2;             % 1 = n_swipes, 2 = sharing score, 3 = swipe accuracy ratio
 destination = 'plates';   % n_swipes for 'plates', 'food' (food/table-zone) or 'inter' (inter-plates) destinations
 sex = '';     % '' or 'Male' or 'Female' or 'compare'
-severity = 'on';        % 'on' or ''
+severity = '';        % 'on' or ''
 combine = 1;
 bweight = '_0_01';
 
@@ -26,6 +26,17 @@ if ~strcmp(severity,'on')
     sets = rmv_ADHD(sets,subject_details,nam_save,saved);
 end
 
+ASD_Set = sets{2};
+
+load('OND_details_+Krysiek.mat','OND_details')
+if strcmp(sex,'')
+    [sets] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
+else
+    [sets] = set_allocate_TYPE_OND_gender(subject_details,OND_details,nam_save,saved,sex);
+end
+sets = rmv_frm_sets(sets,months,ranked);
+sets{1}=ASD_Set;
+
 if option == 1
     results = n_swipes;
 elseif option == 2
@@ -37,7 +48,7 @@ elseif option == 3
     results = n_swipes./n_swipes12;
 end
 
-n=3;
+n=4;
 if strcmp(severity,'on')
     n=4;
 end
@@ -116,9 +127,9 @@ function [nam_save,saved,ranked,list] = load_dataset(option,num,folder_loc,desti
     saved = []; list = [];
     if num == 12 || num == 16
         if strcmp(destination,'inter')
-            load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter',bweight,'.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\Even_ext_inter',bweight,'.mat'],'nam_save','ranked')
         else
-            load([folder_loc,'\Ranking_Correlations\Data\SS_ext',bweight,'.mat'],'nam_save','ranked')
+            load([folder_loc,'\Ranking_Correlations\Data\Even_ext',bweight,'.mat'],'nam_save','ranked')
         end
     end
 end
@@ -133,9 +144,9 @@ function [nam_save,ranked,subject_details] = load_extra_data(nam_save,ranked,com
         subject_details = subject_details_combine;
         if num == 12 || num == 16
             if strcmp(destination,'inter')
-                extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter_Krysiek',bweight,'.mat'],'nam_save','ranked');
+                extra = load([folder_loc,'\Ranking_Correlations\Data\Even_ext_inter_Krysiek',bweight,'.mat'],'nam_save','ranked');
             else
-                extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_Krysiek',bweight,'.mat'],'nam_save','ranked');
+                extra = load([folder_loc,'\Ranking_Correlations\Data\Even_ext_Krysiek',bweight,'.mat'],'nam_save','ranked');
             end
         end
         ranked = [ranked;extra.ranked];
@@ -408,15 +419,14 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
         end
     else
         if id == 1
-            clr = [0, 0.4470, 0.7410];
+            clr = [0.8500, 0.3250, 0.0980];
 %             clr = [.4 .4 .4];
         elseif id == 2
-            clr = [0.8500, 0.3250, 0.0980];
+            clr = [0.1740, 0.5605,	0.9432];
         elseif id == 3
-%             clr = [0.9290, 0.6940, 0.1250];
-            clr = [0.47,0.67,0.19];
+            clr = [0.3548,	0.8016,	0.4669];
         elseif id == 4
-            clr = [0.4940, 0.1840, 0.5560];
+            clr = [0.9835,	0.8280,	0.1817];
         end
     end
 
@@ -514,7 +524,7 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
 %     legend('subject','2nd order fit','Location','SouthEast','Orientation','horizontal','fontsize',14)
     
     if id == 1
-        titletxt = 'WP';
+        titletxt = 'ASD';
     elseif sev_choice == 1
         titletxt = '              ASD - Level 1';
     elseif sev_choice == 2
@@ -522,9 +532,11 @@ function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev
     elseif sev_choice == 3
         titletxt = '              ASD - Level 3';
     elseif id == 2
-        titletxt = 'ASD';
+        titletxt = 'Language delay & disorder';
     elseif id == 3
-        titletxt = 'OND';
+        titletxt = 'Other';
+    elseif id == 4
+        titletxt = 'Down syndrome';
     end
 
     if strcmp(sex,'')
@@ -629,8 +641,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     if strcmp(severity,'on')
         colors = [0, 0.4470, 0.7410;.93,.69,.13; .85,.33,.1; .64,.08,.18];
     else
-        colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
-%         colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.9290, 0.6940, 0.1250;0.4940, 0.1840, 0.5560];
+        colors = [0.8500, 0.3250, 0.0980; 0.1740, 0.5605,	0.9432; 0.3548,	0.8016,	0.4669; 0.9835,	0.8280,	0.1817];
     end
         
     for i = 1:4
@@ -641,7 +652,7 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     if strcmp(severity,'on')
         xticklabels({'WP','ASD 1','ASD 2','ASD 3'});
     else
-        xticklabels({'WP','ASD','OND'});
+        xticklabels({'ASD','Language delay & disorder','Other','Down syndrome'});
     end
     
     if option == 1 
@@ -692,17 +703,17 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
             if strcmp(severity,'on')
                 axis([0.5 4.5 0 147])
             else
-                axis([0.5 3.5 0 147])
+                axis([0.5 4.5 0 147])
             end
         elseif num == 12
             if strcmp(severity,'on')
                 axis([0.5 4.5 0 147])
             else
-                axis([0.5 3.5 0 147])
+                axis([0.5 4.5 0 147])
             end
         end
     elseif option == 3
-        axis([0.5 3.5 0 1.2])
+        axis([0.5 4.5 0 1.2])
     end
 
 %     %% Plot significance stars
