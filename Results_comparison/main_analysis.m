@@ -1,9 +1,8 @@
 %%% Sharing gameplay analysis - Ruaridh Clark %%%
-
 clear all
 
-option = 1;             % 1 = n_swipes, 2 = sharing score
-destination = 'plates'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
+option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = sharing score difference
+destination = 'inter'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
 sex = '';               % '' or 'Male' or 'Female' or 'compare'
 severity = '';          % 'on' or ''
 combine = 1;
@@ -17,46 +16,16 @@ tab_sev = readtable([floc,'\eCRF.csv']);
 [nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,combine,num,folder_loc,destination,bweight); % load pretrial data
 
 %%% Count swipes %%%
-[n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination); % list records subjects with adjacency matrix
+[n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination,length(subject_details)); % list records subjects with adjacency matrix
 
 %%% Create group sets %%%
-[sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked);
-n=3;
-
-%%% Adjust sets for ASD severity %%%
-if ~strcmp(severity,'on') % adjust sets to include only ASD severity levels and WP
-    sets = rmv_ADHD(sets,subject_details,nam_save,saved);
-    n=4;
-end
+[sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked);
 
 %%% Results variable %%%
-if option == 1
-    results = n_swipes;
-elseif option == 2
-    results = ranked';
-end
+[results] = results_variable(option,n_swipes,ranked);
 
 %%% Plot results
-if strcmp(sex,'compare') % compare male and female
-    [all_sets,grps] = create_grps_allsets_sex(results,sets);
-    boxplot_sex_cmpr(all_sets,grps,option,destination,num)
-    [save_p] = significance_sex(results',sets);
-else                        % display all or male/female sex
-    for id = 1 : n        % TD, ASD, OND
-        plot_results(results',months,sets,id,option,destination,num,sex,severity)
-    end
-    
-    [all_sets,grps] = create_grps_allsets(results,sets);
-
-    [save_p,combos] = significance_check(results,sets,n);
-
-    if strcmp(severity,'on')
-        save_p = save_p([1,4,6]);
-        combos = combos([1,4,6],:);
-    end
-    
-    Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
-end
+plot_options(results,sets,option,destination,num,months,id,sex,severity,n)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destination)
@@ -111,7 +80,7 @@ function [nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,
     end
 end
 
-function [sets,months] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked)
+function [sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked)
     [months] = list_AGE(subject_details,nam_save,saved);
     if size(months,1)<size(months,2)
         months=months';
@@ -131,8 +100,15 @@ function [sets,months] = create_sets_months(subject_details,nam_save,saved,sex,t
     end
 
     sets = rmv_frm_sets(sets,months,ranked); % age range 30 to 72 months
-end
 
+    %%% Adjust sets for ASD severity %%%
+    if ~strcmp(severity,'on') % adjust sets to include only ASD severity levels and WP
+        sets = rmv_ADHD(sets,subject_details,nam_save,saved);
+        n=3;
+    else 
+        n=3;
+    end
+end
 
 function [sets] = rmv_frm_sets(sets,months,ranked)
     exclude = find(months>72); % 72 month threshold
@@ -191,7 +167,7 @@ function [all_sets,grps] = create_grps_allsets(results,sets)
     end	
 end
 
-function [n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination) 
+function [n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination,len_subjects) 
     n_swipes = zeros(1,length(nam_save));
     f_num = 0;
     
@@ -249,8 +225,28 @@ function [n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination)
         end
     end
 
-    saved=ones(1,length(subject_details)); 
+    saved=ones(1,len_subjects); 
     saved(list)=zeros(1,length(list)); % create list of 1s, zero those without adjs
+end
+
+function [results] = results_variable(option,n_swipes,ranked)
+    if option == 1
+        results = n_swipes;
+    elseif option == 2
+        results = ranked';
+        if strcmp(destination,'plates')
+            save('results_plates.mat','results')
+        elseif strcmp(destination,'inter')
+            save('results_inter.mat','results')
+        end
+    elseif option == 3
+        % Sharing score difference
+        load('results_inter.mat')
+        results_i = results;
+        load('results_plates.mat')
+        results_p = results;
+        results=results_i-results_p;
+    end
 end
 
 function [adj] = adj_snap2zones(adj,num)
@@ -278,7 +274,7 @@ function [adj] = adj_snap2zones(adj,num)
     end
 end
 
-function [] = plot_results(results,months,sets,id,option,destination,num,sex,sev_choice)
+function [] = plot_results(results,months,sets,id,option,destination,num,sex,severity)
     if strcmp(severity,'on')
         sev_choice = id-1;
     else
@@ -491,8 +487,8 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
 end
 
 function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
-    mv = zeros(1,4);
-    for i = 1:4
+    mv = zeros(1,length(save_p));
+    for i = 1:length(save_p)
         Ind=find(ic==i);
         mv(i) = max(all_sets(Ind));
     end
@@ -544,7 +540,6 @@ end
 
 function [save_p] = significance_sex(results,sets)
     save_p = zeros(1,4);
-%     numopt = [1,5;2,6;3,7];
     numopt = nchoosek([1,5,2,6,3,7],2);
     for j = 1 : length(numopt)
         num=numopt(j,:);
@@ -606,6 +601,30 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
                 ylabel('Indirect sharing score','fontsize',14)
             end
         end
+    end
+end
+
+function [] = plot_options(results,sets,option,destination,num,months,id,sex,severity,n)
+
+    if strcmp(sex,'compare') % compare male and female
+        [all_sets,grps] = create_grps_allsets_sex(results,sets);
+        boxplot_sex_cmpr(all_sets,grps,option,destination,num)
+        [save_p] = significance_sex(results',sets);
+    else                        % display all or male/female sex
+        for id = 1 : n        % TD, ASD, OND
+            plot_results(results',months,sets,id,option,destination,num,sex,severity)
+        end
+        
+        [all_sets,grps] = create_grps_allsets(results,sets);
+    
+        [save_p,combos] = significance_check(results,sets,n);
+    
+        if strcmp(severity,'on')
+            save_p = save_p([1,4,6]);
+            combos = combos([1,4,6],:);
+        end
+        
+        Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
     end
 end
 

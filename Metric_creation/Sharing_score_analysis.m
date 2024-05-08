@@ -1,25 +1,23 @@
 %%% Sharing Score Analysis
 
 clear all
-folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
-% folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj';
-folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
-addpath(folder4,folder6,folder7)
-file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_foodpile\'; %\adj_obj_end_accurate\'; % should match zone type
+folder1 = '..\Set_allocate';
+folder2 = '..\Create_adj';
+folder3 = '..\';
+addpath(folder1,folder2,folder3)
+file_loc = '..\adjs\adj_foodpile\';
 
 load('swipes_all704.mat','nam_save')
 
-%% stack the adjs
-num =16;    % number of ipad zones (nodes)
-redirect = 1; % rewire snap-to-target zones (accurate 0 or snap-to 1)
+%%
+num =16;        % number of ipad zones (nodes)
+redirect = 1;   % rewire snap-to-target zones (accurate 0 or snap-to 1)
 pert_init=-.80;
 
 saved = zeros(num,704);
 ranked = zeros(704,1);
 
 type = 'plates';
-label = '';
 bweight = 0.01;
 
 for i = 1:704
@@ -65,7 +63,7 @@ for i = 1:704
 %             pert
         end
         if ranked(i)==0
-            ranked(i)=pert;%-pert_init;
+            ranked(i)=pert;
         end
     else 
         ranked(i)=0.5*.01;
@@ -73,15 +71,10 @@ for i = 1:704
 end
 
 if strcmp(type,'plates')
-    if strcmp(label,'accurate')
-        save('SS_accurate.mat','ranked','nam_save')
-    else
-        save('SS_ext.mat','ranked','nam_save')
-    end
+    save('SS_ext.mat','ranked','nam_save')
 elseif strcmp(type,'inter')
     save('SS_ext_inter.mat','ranked','nam_save')
 end
-% save('temp_save_OBJ_end.mat','ranked','nam_save')
 
 %%%%%%%%% functions %%%%%%%%%
 function [L] = adj2L(adj,num)
@@ -96,7 +89,6 @@ function [L] = adj2L(adj,num)
             adj(it,4:7)=zeros(1,4);                     % remove non-food connections
         end
     end
-%     adj=adj-diag(diag(adj));      % remove diagonal
     
     if sum(adj(:))>0
         adj = (adj./sum(adj(:)));   % convert to proportional weights
@@ -143,8 +135,6 @@ function [L] = adj2L_snap2zones_foodloc(adj,num,label,bweight)
         adj = (adj./sum(adj(:)));% Normalising
     end
 
-%     bweight=.01;
-%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
     L = -adj;
@@ -181,14 +171,10 @@ function [L] = adj2L_interplate(adj,num,bweight)
         adj = (adj./sum(adj(:)));% Normalising
     end
 
-%     bweight=.01;
-%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
-    L=-adj;%+ diag(diag(adj));% + diag(sum(adj,2));
+    L=-adj;
 
-    %% Remove diagonal - convert L into adj (sort of)
-%     L=L-diag(diag(L)); 
 end
 
 function [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert)
@@ -215,9 +201,7 @@ function [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert)
 end
 
 function [pert,prev,check] = pert_bisect(pert,prev,pert_init,tmp_pert,check)
-%     pert = pert-pert_init;
     dif = pert-prev;
-%             [saved(1:4)',check]
     prev=pert;
     if check == 1
         pert = pert + abs(dif)/2;
@@ -231,12 +215,11 @@ function [pert,prev,check] = pert_bisect(pert,prev,pert_init,tmp_pert,check)
         elseif check == -1
             check = -10;
         end
-        pert=tmp_pert;%-pert_init;
+        pert=tmp_pert;
     end
 end
 
 function [pert] = pert_iter(pert,check,pert_init)
-%     pert = pert-pert_init;
     if check == 10
         iter = 0.001;
         pert = pert + iter;
@@ -244,4 +227,11 @@ function [pert] = pert_iter(pert,check,pert_init)
         iter = -0.001;
         pert = pert + iter;
     end
+end
+
+function [adj] = NNR_adj_conns_OBJ2(adj,bweight)
+    %% create all to all connections
+    Complete_graph = ones(length(adj),length(adj))*bweight; 
+    Complete_graph(isnan(Complete_graph))=0;
+    adj=adj+Complete_graph;
 end
