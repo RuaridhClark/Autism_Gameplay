@@ -6,20 +6,25 @@ folder2 = '..\Create_adj';
 folder3 = '..\';
 addpath(folder1,folder2,folder3)
 file_loc = '..\adjs\adj_foodpile\';
+option = "pretrial";
 
-load('swipes_all704.mat','nam_save')
+if option == "trial"
+    load('swipes_trial.mat','nam_save')
+elseif option == "pretrial"
+    load('swipes_pretrial.mat','nam_save')
+end
 
 %%
 num =16;        % number of ipad zones (nodes)
 pert_init=-.80;
 
-saved = zeros(num,704);
-ranked = zeros(704,1);
+saved = zeros(num,length(nam_save));
+ranked = zeros(length(nam_save),1);
 
-type = 'inter';
-bweight = 0.01;
+type = 'plates';
+bweight = 0.001;
 
-for i = 1:704
+for i = 1:length(nam_save)
     file_id = ['subject_',nam_save{i},'.mat'];
 
     if isfile([file_loc,file_id])
@@ -65,14 +70,19 @@ for i = 1:704
     end
 end
 
+[w_string] = save_title(option,bweight);
+
 if strcmp(type,'plates')
-    save('SS_ext.mat','ranked','nam_save')
+    save(append('..\Results_comparison\Data\SS_ext',w_string,'.mat'),'ranked','nam_save')
 elseif strcmp(type,'inter')
-    save('SS_ext_inter.mat','ranked','nam_save')
+    save(append('..\Results_comparison\Data\SS_ext_inter',w_string,'.mat'),'ranked','nam_save')
 end
 
 %%%%%%%%% functions %%%%%%%%%
 function [L] = adj2L_snap2zones_foodloc(adj,num,bweight)
+    
+    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % Collect all food delivery swipes
+    adj(2,13:16)=zeros(1,4);               % remove re-connected connections
 
     %% remove zn 4-7 incoming except from 2
     allow=2;
@@ -192,4 +202,15 @@ function [adj] = NNR_adj_conns_OBJ2(adj,bweight)
     Complete_graph = ones(length(adj),length(adj))*bweight; 
     Complete_graph(isnan(Complete_graph))=0;
     adj=adj+Complete_graph;
+end
+
+function [w_string] = save_title(option,bweight)
+    % Convert the value to string
+    w_string = sprintf('_%.3f', bweight);
+    % Replace the decimal point with underscore
+    w_string = strrep(w_string, '.', '_');
+
+    if strcmp(option,'pretrial')
+        w_string = append('_pretrial',w_string);
+    end
 end
