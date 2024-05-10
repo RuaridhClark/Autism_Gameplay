@@ -53,9 +53,9 @@ function [nam_save,saved,ranked,list] = load_trial_data(num,folder_loc,destinati
     saved = []; list = [];
     if num == 12 || num == 16
         if strcmp(destination,'inter')
-            load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter',bweight,'.mat'],'nam_save','ranked')
+            load([folder_loc,'\Results_comparison\Data\SS_ext_inter',bweight,'.mat'],'nam_save','ranked')
         else
-            load([folder_loc,'\Ranking_Correlations\Data\SS_ext',bweight,'.mat'],'nam_save','ranked')
+            load([folder_loc,'\Results_comparison\Data\SS_ext',bweight,'.mat'],'nam_save','ranked')
         end
     end
 end
@@ -70,9 +70,9 @@ function [nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,
         subject_details = subject_details_combine;
         if num == 12 || num == 16
             if strcmp(destination,'inter')
-                extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_inter_Krysiek',bweight,'.mat'],'nam_save','ranked');
+                extra = load([folder_loc,'\Results_comparison\Data\SS_ext_inter_Krysiek',bweight,'.mat'],'nam_save','ranked');
             else
-                extra = load([folder_loc,'\Ranking_Correlations\Data\SS_ext_Krysiek',bweight,'.mat'],'nam_save','ranked');
+                extra = load([folder_loc,'\Results_comparison\Data\SS_ext_Krysiek',bweight,'.mat'],'nam_save','ranked');
             end
         end
         ranked = [ranked;extra.ranked];
