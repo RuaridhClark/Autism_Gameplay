@@ -5,42 +5,40 @@ zone = defineZonePositions(); % define game zones
 
 %%%% Trial data
 swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
-load('swipes_all704.mat');
+load('swipes_trial.mat');
 save_adj_loc = '..\adjs\';
-trial = 1; % switch set
 
-% Process each swipe
-for i = 1:length(nam_save)
-    swipe = swipe_save{i};
-    
-    [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc);
+adj_processing(nam_save,swipe_save,swipe_data_loc,zone,'trial');
 
-    [adj] = adj_create(trial,zone,filename,swipe);
-
-    % Save adj
-    save([save_adj_loc,'adj_foodpile\',savename],'adj'); 
-end
 %%%%
 
 %%%% Pre-trial data
 swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
-load('swipes_Krysiek_ond.mat')
-trial = 0; % switch set
+load('swipes_pretrial.mat')
 
-% Process each swipe
-for i = 1:length(nam_save)
-    swipe=swipe_save{i};
+adj_processing(nam_save,swipe_save,swipe_data_loc,zone,'pretrial');
 
-    [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc);
-
-    [adj] = adj_create(trial,zone,filename,swipe);
-
-    % Save adj
-    save([save_adj_loc,'adj_foodpile\',savename],'adj'); 
-end
 %%%%
 
 %%%%%% Functions %%%%%%
+function [] = adj_processing(nam_save,swipe_save,swipe_data_loc,zone,option)
+
+    % Process each swipe
+    for i = 1:length(nam_save)
+        swipe = swipe_save{i};
+    
+        if strcmp(option,'trial')
+            [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc);
+        elseif strcmp(option,'pretrial')
+            [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc);
+        end
+    
+        if ~skip
+            [adj] = adj_create(option,zone,filename,swipe);    
+            save([save_adj_loc,'adj_foodpile\',savename],'adj');  % Save adj
+        end
+    end
+end
 
 function zone = defineZonePositions()
     % Initialize yl
@@ -75,6 +73,8 @@ function [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc)
         filename = [swipe_data_loc,file_id];
         savename = ['subject_',nam_save{i}];
     else
+        filename=[];
+        savename=[];
         skip = 1;
     end
 end
@@ -84,24 +84,26 @@ function [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc)
 
     file_id = [nam_save{i}];
     
-    if isfile([swipe_data_loc,file_id,'.mat'])
-        filename = [swipe_data_loc,file_id,'.mat'];
+    if isfile([swipe_data_loc,file_id])
+        filename = [swipe_data_loc,file_id];
         savename = ['subject_',nam_save{i}];
     else
+        filename=[];
+        savename=[];
         skip = 1;
     end
 end
 
-function [adj] = adj_create(trial,zone,filename,swipe)
+function [adj] = adj_create(option,zone,filename,swipe)
 
-    if trial == 1
+    if strcmp(option,'trial')
         tab = sortrows(readtable(filename),4); % sort table according to time
         if iscell(tab.X(1)) % Convert strings to doubles for X and Y
             tab = sortrows(readtable(filename),14); % sort table according to time
             tab.X = str2double(strrep(tab.X,',','.'));
             tab.Y = str2double(strrep(tab.Y,',','.'));
         end
-    elseif trial == 0
+    elseif strcmp(option,'pretrial')
         load(filename,'subject_table');
         tab=sortrows(subject_table,8); % sort table according to time
         tab = renamevars(tab,["x","y"],["X","Y"]);

@@ -1,6 +1,5 @@
 % create subject_details
 
-% close all
 clear all
 file_init = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
 D = dir(file_init);

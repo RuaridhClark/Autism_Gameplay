@@ -1,10 +1,9 @@
 %%% Sharing Score Analysis
 
 clear all
-folder1 = '..\Set_allocate';
-folder2 = '..\Create_adj';
-folder3 = '..\';
-addpath(folder1,folder2,folder3)
+folder1 = '..\Create_adj';
+folder2 = '..\';
+addpath(folder1,folder2)
 file_loc = '..\adjs\adj_foodpile\';
 option = "pretrial";
 
@@ -66,7 +65,7 @@ for i = 1:length(nam_save)
             ranked(i)=pert;
         end
     else 
-        ranked(i)=NaN;%0.5*.01;
+        ranked(i)=NaN;
     end
 end
 

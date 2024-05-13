@@ -1,20 +1,20 @@
 function [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender)
     sets = {[] [] [] []};
-    OND = [];
     for i = 1 : size(subject_details,1)
         [I] = name_id(subject_details{i,1},nam_save);
         [Ind] = name_id(subject_details{i,1},tab_sev.id_study_id(:));
+
         if ~isempty(Ind)
             [sev_num] = severity_score(tab_sev.clinical_diagnosis__asd_severity_level{Ind});
         else
             sev_num = 0;
         end
-%         if ~isempty(Ind)
-        if strcmp(gender,subject_details{i,4}) | strcmp(gender,'')
-            if max(saved(:,i))>0 & subject_details{i,2} < 7 %& strcmp(subject_details{i,4},'Male')%% removing subjects with no sharing game data
+
+        if strcmp(gender,subject_details{i,4}) || strcmp(gender,'')
+            if max(saved(:,i))>0 && subject_details{i,2} < 7 % removing subjects with no sharing game data
                 if strcmp(subject_details{i,5},'TD')
                     sets{1} = [sets{1},I];
-                elseif strcmp(subject_details{i,5},'ASD')
+                elseif strcmp(subject_details{i,5},'ASD') % sets of severity levels
                     if sev_num == 1
                         sets{2} = [sets{2},I];
                     elseif sev_num == 2
@@ -25,7 +25,6 @@ function [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,g
                 end
             end
         end
-%         end
     end
 
 end

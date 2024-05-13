@@ -2,11 +2,11 @@
 clear all
 
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = sharing score difference
-destination = 'inter'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
+destination = 'plates'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
 sex = '';               % '' or 'Male' or 'Female' or 'compare'
 severity = '';          % 'on' or ''
 combine = 1;
-bweight = '_0_01';
+bweight = 0.01;
 
 [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destination);
 tab_sev = readtable([floc,'\eCRF.csv']);
@@ -22,10 +22,10 @@ tab_sev = readtable([floc,'\eCRF.csv']);
 [sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked);
 
 %%% Results variable %%%
-[results] = results_variable(option,n_swipes,ranked);
+[results] = results_variable(option,n_swipes,ranked,destination);
 
 %%% Plot results
-plot_options(results,sets,option,destination,num,months,id,sex,severity,n)
+plot_options(results,sets,option,destination,num,months,sex,severity,n)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destination)
@@ -35,7 +35,7 @@ function [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destinatio
         num = 16;
     end
 
-    folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
+    folder_loc = '..\';
     alt_folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data';
     file_loc = [folder_loc,'\adjs\adj_foodpile\']; % should match zone type
     floc=[alt_folder_loc,'\IQ_severity'];
@@ -50,12 +50,14 @@ function [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destinatio
 end
 
 function [nam_save,saved,ranked,list] = load_trial_data(num,folder_loc,destination,bweight)
+    [w_string] = save_title('trial',bweight);
+
     saved = []; list = [];
     if num == 12 || num == 16
         if strcmp(destination,'inter')
-            load([folder_loc,'\Results_comparison\Data\SS_ext_inter',bweight,'.mat'],'nam_save','ranked')
+            load([folder_loc,'\Results_comparison\Data\SS_ext_inter',w_string,'.mat'],'nam_save','ranked')
         else
-            load([folder_loc,'\Results_comparison\Data\SS_ext',bweight,'.mat'],'nam_save','ranked')
+            load([folder_loc,'\Results_comparison\Data\SS_ext',w_string,'.mat'],'nam_save','ranked')
         end
     end
 end
@@ -68,15 +70,27 @@ function [nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,
         addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_foodpile'
         load('subject_details_combine_ond.mat')
         subject_details = subject_details_combine;
+        [w_string] = save_title('pretrial',bweight);
         if num == 12 || num == 16
             if strcmp(destination,'inter')
-                extra = load([folder_loc,'\Results_comparison\Data\SS_ext_inter_Krysiek',bweight,'.mat'],'nam_save','ranked');
+                extra = load([folder_loc,'\Results_comparison\Data\SS_ext_inter',w_string,'.mat'],'nam_save','ranked');
             else
-                extra = load([folder_loc,'\Results_comparison\Data\SS_ext_Krysiek',bweight,'.mat'],'nam_save','ranked');
+                extra = load([folder_loc,'\Results_comparison\Data\SS_ext',w_string,'.mat'],'nam_save','ranked');
             end
         end
         ranked = [ranked;extra.ranked];
         nam_save = [nam_save,extra.nam_save];
+    end
+end
+
+function [w_string] = save_title(option,bweight)
+    % Convert the value to string
+    w_string = sprintf('_%.3f', bweight);
+    % Replace the decimal point with underscore
+    w_string = strrep(w_string, '.', '_');
+
+    if strcmp(option,'pretrial')
+        w_string = append('_pretrial',w_string);
     end
 end
 
@@ -88,13 +102,13 @@ function [sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex
     if strcmp(severity,'on')
         [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
     elseif strcmp(sex,'Male')
-        [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
+        [tmp_sets] = set_allocate_sex_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(5:8);
     elseif strcmp(sex,'Female')
-        [tmp_sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
+        [tmp_sets] = set_allocate_sex_TYPE(subject_details,nam_save,saved);
         sets = tmp_sets(1:4);
     elseif strcmp(sex,'compare')
-        [sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved);
+        [sets] = set_allocate_sex_TYPE(subject_details,nam_save,saved);
     else
         [sets] = set_allocate(subject_details,nam_save,saved);
     end
@@ -229,7 +243,7 @@ function [n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination,len
     saved(list)=zeros(1,length(list)); % create list of 1s, zero those without adjs
 end
 
-function [results] = results_variable(option,n_swipes,ranked)
+function [results] = results_variable(option,n_swipes,ranked,destination)
     if option == 1
         results = n_swipes;
     elseif option == 2
@@ -604,7 +618,7 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
     end
 end
 
-function [] = plot_options(results,sets,option,destination,num,months,id,sex,severity,n)
+function [] = plot_options(results,sets,option,destination,num,months,sex,severity,n)
 
     if strcmp(sex,'compare') % compare male and female
         [all_sets,grps] = create_grps_allsets_sex(results,sets);

@@ -1,28 +1,74 @@
-%% Identify each individual swipe
-
+%% Create swipe files that identify each individual swipe
 clear all
-file_loc = 'I:\Engineering\EEE\RESEARCH\SPACE\MALCOLMSPACE\2013_RuaridhClark\Research\Project\Autism\PlayCare\PlayCare\';
+addpath("Data")
 
-load('tCs_all704.mat','tC_save','nam_save') % load each swipe identified 
+%% Trial
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
+load('tCs_trial.mat','tC_save','nam_save') % load each swipe identified 
 
-m = 0; n = m;
-swipe_save = cell(1,704);
-for i = 1:704
-%     close all
-    tC=tC_save{i};
-    skip=0;
+[swipe_save] = create_swipe_files(tC_save,nam_save,file_loc,'trial');
+
+save('..\Create_adj\swipes_trial.mat','swipe_save','nam_save')
+
+%% Pretrial
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
+load('tC_pretrial.mat','tC_save','nam_save') % load each swipe identified 
+
+[swipe_save] = create_swipe_files(tC_save,nam_save,file_loc,'pretrial');
+
+save('..\Create_adj\swipes_pretrial.mat','swipe_save','nam_save')
+
+%%%%%%% Functions %%%%%%%
+function [swipe_save] = create_swipe_files(tC_save,nam_save,file_loc,option)
+    m = 0; n = m;
+    swipe_save = cell(1,length(tC_save));
+    for i = 1:length(tC_save)
+        tC=tC_save{i};
     
-    file_id = [nam_save{i},'/',nam_save{i},'.Sharing.TouchData.typed.csv'];
-    
-    if isfile([file_loc,file_id])
-        n=n+1;
-        filename = [file_loc,file_id];
-        savename = ['subject_',nam_save{i}];
-
-        swipe = cell(1,max(tC));
-        for ii = 1 : max(tC)
-            swipe{ii}=find(tC==ii);
+        if strcmp(option,'trial')
+            [~,~,skip] = setup_trial(i,nam_save,file_loc);
+        elseif strcmp(option,'pretrial')
+            [~,~,skip] = setup_pretrial(i,nam_save,file_loc);
         end
+
+        swipe = [];
+        if ~skip
+            n=n+1;
+            swipe = cell(1,max(tC));
+            for ii = 1 : max(tC)
+                swipe{ii}=find(tC==ii);
+            end
+        end
+        swipe_save{i}=swipe;
     end
-    swipe_save{i}=swipe;
+end
+
+function [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc)
+    skip = 0;
+    
+    file_id = [nam_save{i},'\',nam_save{i},'.Sharing.TouchData.typed.csv'];
+    
+    if isfile([swipe_data_loc,file_id])
+        filename = [swipe_data_loc,file_id];
+        savename = ['subject_',nam_save{i}];
+    else
+        filename=[];
+        savename=[];
+        skip = 1;
+    end
+end
+
+function [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc)
+    skip = 0;
+
+    file_id = [nam_save{i}];
+    
+    if isfile([swipe_data_loc,file_id])
+        filename = [swipe_data_loc,file_id];
+        savename = ['subject_',nam_save{i}];
+    else
+        filename=[];
+        savename=[];
+        skip = 1;
+    end
 end

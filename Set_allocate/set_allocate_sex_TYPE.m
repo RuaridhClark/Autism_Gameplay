@@ -2,7 +2,8 @@ function [sets] = set_allocate_GENDER_TYPE(subject_details,nam_save,saved)
     sets = {[] [] [] [] [] [] [] []};
     for i = 1 : size(subject_details,1)
         [I] = name_id(subject_details{i,1},nam_save);
-        if max(saved(:,i))>0  %% removing subjects with no sharing game data
+
+        if max(saved(:,i))>0  % removing subjects with no sharing game data
             if strcmp(subject_details{i,4},'Female')
                 if strcmp(subject_details{i,5},'TD')
                     sets{1} = [sets{1},I];

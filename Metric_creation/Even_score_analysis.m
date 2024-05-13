@@ -1,28 +1,30 @@
-%%% Sharing Score Analysis
+%%% Evenness Analysis
 
 clear all
-folder4 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Set_allocate';
-% folder5 = 'H:\My Documents\GitHub\Autism_Gameplay\Plots';
-folder6 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\Create_adj';
-folder7 = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay';
-addpath(folder4,folder6,folder7)
-file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_foodpile\'; %\adj_obj_end_accurate\'; % should match zone type
+folder1 = '..\Set_allocate';
+folder2 = '..\Create_adj';
+folder3 = '..\';
+addpath(folder1,folder2,folder3)
+file_loc = '..\adjs\adj_foodpile\';
+option = "trial";
 
-load('swipes_all704.mat','nam_save')
+if option == "trial"
+    load('swipes_trial.mat','nam_save')
+elseif option == "pretrial"
+    load('swipes_pretrial.mat','nam_save')
+end
 
-%% stack the adjs
-num =16;    % number of ipad zones (nodes)
-redirect = 1; % rewire snap-to-target zones (accurate 0 or snap-to 1)
+%%
+num =16;        % number of ipad zones (nodes)
 pert_init=-.80;
 
-saved = zeros(num,704);
-ranked = zeros(704,1);
+saved = zeros(num,length(nam_save));
+ranked = zeros(length(nam_save),1);
 
-type = 'inter';
-label = '';
+type = 'plates';
 bweight = 0.01;
 
-for i = 1:704
+for i = 1:length(nam_save)
     file_id = ['subject_',nam_save{i},'.mat'];
 
     if isfile([file_loc,file_id])
@@ -30,12 +32,9 @@ for i = 1:704
         titlename = ['ID ',nam_save{i}];
         savename = ['subject_',nam_save{i}];
 
-        if num == 16 && redirect == 0
-            L = adj2L(adj,num);
-        elseif num == 16 && redirect == 1
-%             L = adj2L_snap2zones(adj,num);
+        if num == 16 
             if strcmp(type,'plates')
-                L = adj2L_snap2zones_foodloc(adj,num,label,bweight);  % direct food delivery
+                L = adj2L_snap2zones_foodloc(adj,num,bweight);  % direct food delivery
             elseif strcmp(type,'inter')
                 L = adj2L_interplate(adj,num,bweight);    % inter-plate analysis
             end
@@ -61,74 +60,36 @@ for i = 1:704
     
             pert=std(abs(V(4:7,I(1))))/sum(abs(V(4:7,I(1))));
             check=0;
-%             pert
         end
         if ranked(i)==0
-            ranked(i)=pert;%-pert_init;
+            ranked(i)=pert;
         end
     else 
-        ranked(i)=0.5*.01;
+        ranked(i)=NaN;
     end
 end
+
+[w_string] = save_title(option,bweight);
 
 if strcmp(type,'plates')
-    if strcmp(label,'accurate')
-        save('SS_accurate.mat','ranked','nam_save')
-    else
-        save('Even_ext.mat','ranked','nam_save')
-    end
+    save(append('..\Results_comparison\Data\Even_ext',w_string,'.mat'),'ranked','nam_save')
 elseif strcmp(type,'inter')
-    save('Even_ext_inter.mat','ranked','nam_save')
+    save(append('..\Results_comparison\Data\Even_ext_inter',w_string,'.mat'),'ranked','nam_save')
 end
-% save('temp_save_OBJ_end.mat','ranked','nam_save')
 
 %%%%%%%%% functions %%%%%%%%%
-function [L] = adj2L(adj,num)
-    %% Accurate food delivery version
-    %% remove zn 4-7 incoming except from 2, 4, 5, 6, 7
-    allow=[2];%,4,5,6,7];
-    for it = 1:num
-        if ~ismember(it,allow)
-            if num == 16
-                adj(it,13:16)=adj(it,4:7)+adj(it,13:16);    % reconnect to 13-16
-            end
-            adj(it,4:7)=zeros(1,4);                     % remove non-food connections
-        end
-    end
-%     adj=adj-diag(diag(adj));      % remove diagonal
+function [L] = adj2L_snap2zones_foodloc(adj,num,bweight)
     
-    if sum(adj(:))>0
-        adj = (adj./sum(adj(:)));   % convert to proportional weights
-    end
-
-    bweight=.01;
-    [adj] = NNR_adj_conns_OBJ2(adj,bweight);
-
-    L=-adj + diag(sum(adj,2));
-
-    %% Remove diagonal - convert L into adj (sort of)
-    L=L-diag(diag(L)); 
-end
-
-function [L] = adj2L_snap2zones_foodloc(adj,num,label,bweight)
-    %% All food delivery version
-    % 2 to 4-7 = 2 to 4-7 13-16
-    % 4-7 
-    if ~strcmp(label,'accurate')
-        adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % Collect all food delivery swipes
-        adj(2,13:16)=zeros(1,4);               % remove re-connected connections
-    end
+    adj(2,4:7)=adj(2,4:7)+adj(2,13:16);    % Collect all food delivery swipes
+    adj(2,13:16)=zeros(1,4);               % remove re-connected connections
 
     %% remove zn 4-7 incoming except from 2
-    allow=[2];
+    allow=2;
     for it = 1:num
         if ~ismember(it,allow)
             if num == 16
                 adjust = adj(it,4:7);
                 adj(it,13:16)=adj(it,13:16)+adjust;    % reconnect to 13-16
-%                 if ismember(it,4:7)
-%                     adj(it,it+9)=adj(it,it+9)-adjust(ismember(4:7,it)); % remove displaced self-loop
-%                 end
             end
             list = 4:7;
             listedit =list(~ismember(4:7,it));
@@ -142,8 +103,6 @@ function [L] = adj2L_snap2zones_foodloc(adj,num,label,bweight)
         adj = (adj./sum(adj(:)));% Normalising
     end
 
-%     bweight=.01;
-%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
     L = -adj;
@@ -160,7 +119,6 @@ function [L] = adj2L_interplate(adj,num,bweight)
         dest = 13:16;
         vals = dest(~ismember(dest,allow(i)+9));
         adj(allow(i),vals)=zeros(1,length(vals));               % remove re-connected connections
-%         adj(allow(i),13:16)=zeros(1,4);               % remove re-connected connections
     end
     % Remove direct to plate
     for it = 1:num
@@ -180,14 +138,10 @@ function [L] = adj2L_interplate(adj,num,bweight)
         adj = (adj./sum(adj(:)));% Normalising
     end
 
-%     bweight=.01;
-%     bweight = 1/length(adj)^2;
     [adj] = NNR_adj_conns_OBJ2(adj,bweight);
 
-    L=-adj;%+ diag(diag(adj));% + diag(sum(adj,2));
+    L=-adj;
 
-    %% Remove diagonal - convert L into adj (sort of)
-%     L=L-diag(diag(L)); 
 end
 
 function [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert)
@@ -213,10 +167,8 @@ function [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert)
     end
 end
 
-function [pert,prev,check] = pert_bisect(pert,prev,pert_init,tmp_pert,check)
-%     pert = pert-pert_init;
+function [pert,prev,check] = pert_bisect(pert,prev,tmp_pert,check)
     dif = pert-prev;
-%             [saved(1:4)',check]
     prev=pert;
     if check == 1
         pert = pert + abs(dif)/2;
@@ -230,17 +182,34 @@ function [pert,prev,check] = pert_bisect(pert,prev,pert_init,tmp_pert,check)
         elseif check == -1
             check = -10;
         end
-        pert=tmp_pert;%-pert_init;
+        pert=tmp_pert;
     end
 end
 
-function [pert] = pert_iter(pert,check,pert_init)
-%     pert = pert-pert_init;
+function [pert] = pert_iter(pert,check)
     if check == 10
         iter = 0.001;
         pert = pert + iter;
     elseif check == -10
         iter = -0.001;
         pert = pert + iter;
+    end
+end
+
+function [adj] = NNR_adj_conns_OBJ2(adj,bweight)
+    %% create all to all connections
+    Complete_graph = ones(length(adj),length(adj))*bweight; 
+    Complete_graph(isnan(Complete_graph))=0;
+    adj=adj+Complete_graph;
+end
+
+function [w_string] = save_title(option,bweight)
+    % Convert the value to string
+    w_string = sprintf('_%.3f', bweight);
+    % Replace the decimal point with underscore
+    w_string = strrep(w_string, '.', '_');
+
+    if strcmp(option,'pretrial')
+        w_string = append('_pretrial',w_string);
     end
 end

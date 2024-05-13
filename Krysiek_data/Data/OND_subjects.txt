@@ -1,7 +1,0 @@
-520	2128	'Study3+'	'NULL'	'Down syndrom'	2	51
-523	2131	'Study3+'	'NULL'	'zespol downa'	2	63
-530	2138	'Study3+'	'NULL'	'zespol downa'	2	30
-532	2140	'Study3+'	'NULL'	'zespol downa'	2	55
-534	2142	'Study3+'	'NULL'	'zespol downa'	2	32
-190	1799	'Study3'	'Intellectual disability;'	'down syndrome'	2	50
-274	1883	'Study3'	'Other;'	'podejrzenie afazji'	2	57
