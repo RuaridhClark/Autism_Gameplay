@@ -24,7 +24,7 @@ bweight = 0.01;         % Edge weight for complete graph
 [results] = results_variable(option,n_swipes,ranked,destination);
 
 %%% Plot results %%%
-plot_options(results,sets,option,destination,num,months,sex,severity,n)
+[p_values] = plot_options(results,sets,option,destination,num,months,sex,severity,n);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [num,alt_folder_loc,file_loc] = setup(option,destination)
@@ -433,7 +433,7 @@ function [] = stars_only(n_stars)
     end
 end
 
-function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
+function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,p_values,combos)
     f=figure;
     b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
     set(b,'LineWidth',1.5)
@@ -487,15 +487,15 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     title(sex)
 
     %% Plot significance stars    
-    auto_star_plot(ic,all_sets,save_p,combos,option,severity)
+    auto_star_plot(ic,all_sets,p_values,combos,option,severity)
 
 end
 
-function [] = auto_star_plot(ic,all_sets,save_p,combos,option,severity)
+function [] = auto_star_plot(ic,all_sets,p_values,combos,option,severity)
     if strcmp(severity,'on')
         n=4;
     else
-        n=length(save_p);
+        n=length(p_values);
     end
 
     mv = zeros(1,n);
@@ -511,29 +511,29 @@ function [] = auto_star_plot(ic,all_sets,save_p,combos,option,severity)
     end
     addh=drp*1.5;
     h_save=0;
-    for i = 1 : length(save_p)
-        j = length(save_p)+1-i;
+    for i = 1 : length(p_values)
+        j = length(p_values)+1-i;
         id1 = combos(j,1);
         id2 = combos(j,2);
         height = max([mv(id1:id2)])+addh;
         height = max([h_save+addh,height]);
-        if save_p(j) < 0.001
+        if p_values(j) < 0.001
             stars_line(3,height,id1,id2,drp)
-        elseif save_p(j) < 0.01
+        elseif p_values(j) < 0.01
             stars_line(2,height,id1,id2,drp)
-        elseif save_p(j) < 0.05
+        elseif p_values(j) < 0.05
             stars_line(1,height,id1,id2,drp)
         end
-        if save_p(j) < 0.05
+        if p_values(j) < 0.05
             h_save = height;
         end
     end
 end
 
-function [save_p,combos] = significance_check(results,sets,n)
+function [p_values,combos] = significance_check(results,sets,n)
     % pairwise significance check
     combos=nchoosek(1:n,2);
-    save_p = zeros(1,size(combos,1));
+    p_values = zeros(1,size(combos,1));
     for j = 1 : size(combos,1)
         num = combos(j,:);
         len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
@@ -545,12 +545,12 @@ function [save_p,combos] = significance_check(results,sets,n)
         
         % Perform the two-tailed unpaired Wilcoxon test
         [pval, ~] = ranksum(group1, group2);
-        save_p(1,j) = pval;
+        p_values(1,j) = pval;
     end
 end
 
-function [save_p] = significance_sex(results,sets)
-    save_p = zeros(1,4);
+function [p_values] = significance_sex(results,sets)
+    p_values = zeros(1,4);
     numopt = nchoosek([1,5,2,6,3,7],2);
     for j = 1 : length(numopt)
         num=numopt(j,:);
@@ -562,7 +562,7 @@ function [save_p] = significance_sex(results,sets)
         % Perform the two-tailed unpaired Wilcoxon test
         [pval, ~] = ranksum(group1, group2);
 
-        save_p(1,j) = pval;
+        p_values(1,j) = pval;
     end
 end
 
@@ -615,12 +615,12 @@ function [ ] = boxplot_sex_cmpr(all_sets,grps,option,destination,num)
     end
 end
 
-function [] = plot_options(results,sets,option,destination,num,months,sex,severity,n)
+function [p_values] = plot_options(results,sets,option,destination,num,months,sex,severity,n)
 
     if strcmp(sex,'compare') % compare male and female
         [all_sets,grps] = create_grps_allsets_sex(results,sets);
         boxplot_sex_cmpr(all_sets,grps,option,destination,num)
-        [save_p] = significance_sex(results',sets);
+        [p_values] = significance_sex(results',sets);
     else                        % display all or male/female sex
         for id = 1 : n        % TD, ASD, OND
             plot_results(results',months,sets,id,option,destination,num,sex,severity)
@@ -628,14 +628,14 @@ function [] = plot_options(results,sets,option,destination,num,months,sex,severi
         
         [all_sets,grps] = create_grps_allsets(results,sets);
     
-        [save_p,combos] = significance_check(results,sets,n);
+        [p_values,combos] = significance_check(results,sets,n);
     
         if strcmp(severity,'on')
-            save_p = save_p([1,4,6]);
+            p_values = p_values([1,4,6]);
             combos = combos([1,4,6],:);
         end
         
-        Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,save_p,combos)
+        Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,p_values,combos)
     end
 end
 
