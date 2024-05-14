@@ -1,3 +1,4 @@
+%% Create adjacency matrices
 % Track the zones that swipes pass through zones to create an adjacency matrix 
 % linking the origin and destination zones of swipes during gameplay.
 
@@ -6,33 +7,33 @@ clear all
 zone = defineZonePositions(); % define game zones
 
 %%%% Trial data
-swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
+swipe_data_loc = NaN; % [data restricted]
 load('swipes_trial.mat');
 save_adj_loc = '..\adjs\';
 
-adj_processing(nam_save,swipe_save,swipe_data_loc,zone,'trial');
+adj_processing(name_save,swipe_save,swipe_data_loc,zone,'trial');
 
 %%%%
 
 %%%% Pre-trial data
-swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
+swipe_data_loc = NaN; % [data restricted]
 load('swipes_pretrial.mat')
 
-adj_processing(nam_save,swipe_save,swipe_data_loc,zone,'pretrial');
+adj_processing(name_save,swipe_save,swipe_data_loc,zone,'pretrial');
 
 %%%%
 
 %%%%%% Functions %%%%%%
-function [] = adj_processing(nam_save,swipe_save,swipe_data_loc,zone,option)
+function [] = adj_processing(name_save,swipe_save,swipe_data_loc,zone,option)
 
     % Process each swipe
-    for i = 1:length(nam_save)
+    for i = 1:length(name_save)
         swipe = swipe_save{i};
     
         if strcmp(option,'trial')
-            [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc);
+            [filename,savename,skip] = setup_trial(i,name_save,swipe_data_loc);
         elseif strcmp(option,'pretrial')
-            [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc);
+            [filename,savename,skip] = setup_pretrial(i,name_save,swipe_data_loc);
         end
     
         if ~skip
@@ -66,14 +67,14 @@ function zone = defineZonePositions()
     zone(16,:)=[755, 1004, yl-508, yl-196];
 end
 
-function [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc)
+function [filename,savename,skip] = setup_trial(i,name_save,swipe_data_loc)
     skip = 0;
     
-    file_id = [nam_save{i},'\',nam_save{i},'.Sharing.TouchData.typed.csv'];
+    file_id = [name_save{i},'\',name_save{i},'.Sharing.TouchData.typed.csv'];
     
     if isfile([swipe_data_loc,file_id])
         filename = [swipe_data_loc,file_id];
-        savename = ['subject_',nam_save{i}];
+        savename = ['subject_',name_save{i}];
     else
         filename=[];
         savename=[];
@@ -81,14 +82,14 @@ function [filename,savename,skip] = setup_trial(i,nam_save,swipe_data_loc)
     end
 end
 
-function [filename,savename,skip] = setup_pretrial(i,nam_save,swipe_data_loc)
+function [filename,savename,skip] = setup_pretrial(i,name_save,swipe_data_loc)
     skip = 0;
 
-    file_id = [nam_save{i}];
+    file_id = [name_save{i}];
     
     if isfile([swipe_data_loc,file_id])
         filename = [swipe_data_loc,file_id];
-        savename = ['subject_',nam_save{i}];
+        savename = ['subject_',name_save{i}];
     else
         filename=[];
         savename=[];

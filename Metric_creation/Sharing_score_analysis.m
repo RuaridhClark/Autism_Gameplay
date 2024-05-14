@@ -10,28 +10,28 @@ file_loc = '..\adjs\adj_zones\';
 option = "pretrial";
 
 if option == "trial"
-    load('swipes_trial.mat','nam_save')
+    load('swipes_trial.mat','name_save')
 elseif option == "pretrial"
-    load('swipes_pretrial.mat','nam_save')
+    load('swipes_pretrial.mat','name_save')
 end
 
 %%
 num =16;        % number of ipad zones (nodes)
 pert_init=-.80; % initial perturbation
 
-saved = zeros(num,length(nam_save));
-ranked = zeros(length(nam_save),1);
+saved = zeros(num,length(name_save));
+ranked = zeros(length(name_save),1);
 
 type = 'plates';    % 'plates' for direct sharing score, 'inter' for indirect sharing score 
 bweight = 0.001;
 
-for i = 1:length(nam_save)
-    file_id = ['subject_',nam_save{i},'.mat'];
+for i = 1:length(name_save)
+    file_id = ['subject_',name_save{i},'.mat'];
 
     if isfile([file_loc,file_id])
         load([file_loc,file_id])
-        titlename = ['ID ',nam_save{i}];
-        savename = ['subject_',nam_save{i}];
+        titlename = ['ID ',name_save{i}];
+        savename = ['subject_',name_save{i}];
 
         if num == 16 
             if strcmp(type,'plates')
@@ -74,9 +74,9 @@ end
 [w_string] = save_title(option,bweight);
 
 if strcmp(type,'plates')
-    save(append('..\Results_comparison\Data\SS_ext',w_string,'.mat'),'ranked','nam_save')
+    save(append('..\Results_comparison\Data\SS_ext',w_string,'.mat'),'ranked','name_save')
 elseif strcmp(type,'inter')
-    save(append('..\Results_comparison\Data\SS_ext_inter',w_string,'.mat'),'ranked','nam_save')
+    save(append('..\Results_comparison\Data\SS_ext_inter',w_string,'.mat'),'ranked','name_save')
 end
 
 %%%%%%%%% functions %%%%%%%%%

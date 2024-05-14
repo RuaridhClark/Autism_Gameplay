@@ -4,22 +4,21 @@ clear all
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = sharing score difference
 destination = 'plates'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
 sex = '';               % '' or 'Male' or 'Female' or 'compare' (switch for analysing sex groupings)
-severity = '';          % 'on' or '' (switch for analysing severity levels in ASD)
+severity = 'on';          % 'on' or '' (switch for analysing severity levels in ASD)
 combine = 1;            % Combine both pre-trial and trial data when combine = 1
 bweight = 0.01;         % Edge weight for complete graph
 
-[num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destination);
-tab_sev = readtable([floc,'\eCRF.csv']);
+[num,alt_folder_loc,file_loc] = setup(option,destination);
 
 %%% Load data %%%
-[nam_save,~,ranked,~] = load_trial_data(num,folder_loc,destination,bweight); % load trial data
-[nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,combine,num,folder_loc,destination,bweight); % load pretrial data
+[name_save,~,ranked,~] = load_trial_data(num,destination,bweight); % load trial data
+[name_save,ranked,subject_details] = load_pretrial_data(name_save,ranked,combine,num,destination,bweight); % load pretrial data
 
 %%% Count swipes %%%
-[n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination,length(subject_details)); % list records subjects with adjacency matrix
+[n_swipes,saved] = swipe_analysis(num,file_loc,name_save,destination,length(subject_details)); % list records subjects with adjacency matrix
 
 %%% Create group sets %%%
-[sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked);
+[sets,months,n] = create_sets_months(subject_details,name_save,saved,sex,severity);
 
 %%% Results variable %%%
 [results] = results_variable(option,n_swipes,ranked,destination);
@@ -28,56 +27,51 @@ tab_sev = readtable([floc,'\eCRF.csv']);
 plot_options(results,sets,option,destination,num,months,sex,severity,n)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destination)
+function [num,alt_folder_loc,file_loc] = setup(option,destination)
     if option == 2 || strcmp(destination,'plates')
         num = 12;
     else
         num = 16;
     end
 
-    folder_loc = '..\';
     alt_folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data';
-    file_loc = [folder_loc,'\adjs\adj_zones\']; % should match zone type
-    floc=[alt_folder_loc,'\IQ_severity'];
 
-    folder1 = [folder_loc,'\Plots'];
-    folder2 = [folder_loc,'\Create_adj'];
-    folder3 = [folder_loc,'\adjs\adj_zones'];
-    folder4 = [folder_loc,'\Data'];
-    folder5 = folder_loc;
-    addpath(folder1,folder2,folder3,folder4,folder5)
+    file_loc = '..\adjs\adj_zones';
+    folder1 = '..\Data';
+    folder2 = 'Set_allocate';
+    addpath(file_loc,folder1,folder2)
 end
 
-function [nam_save,saved,ranked,list] = load_trial_data(num,folder_loc,destination,bweight)
+function [name_save,saved,ranked,list] = load_trial_data(num,destination,bweight)
     [w_string] = save_title('trial',bweight);
 
     saved = []; list = [];
     if num == 12 || num == 16
         if strcmp(destination,'inter')
-            load([folder_loc,'\Results_comparison\Data\SS_ext_inter',w_string,'.mat'],'nam_save','ranked')
+            load(['Data\SS_ext_inter',w_string,'.mat'],'name_save','ranked')
         else
-            load([folder_loc,'\Results_comparison\Data\SS_ext',w_string,'.mat'],'nam_save','ranked')
+            load(['Data\SS_ext',w_string,'.mat'],'name_save','ranked')
         end
     end
 end
 
-function [nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,combine,num,folder_loc,destination,bweight)
+function [name_save,ranked,subject_details] = load_pretrial_data(name_save,ranked,combine,num,destination,bweight)
     if combine == 0
         load('subject_details_trial.mat')
     elseif combine == 1
-        addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_zones'
+        addpath '..\adjs\adj_zones'
         load('subject_details_combine.mat')
         subject_details = subject_details_combine;
         [w_string] = save_title('pretrial',bweight);
         if num == 12 || num == 16
             if strcmp(destination,'inter')
-                extra = load([folder_loc,'\Results_comparison\Data\SS_ext_inter',w_string,'.mat'],'nam_save','ranked');
+                extra = load(['Data\SS_ext_inter',w_string,'.mat'],'name_save','ranked');
             else
-                extra = load([folder_loc,'\Results_comparison\Data\SS_ext',w_string,'.mat'],'nam_save','ranked');
+                extra = load(['Data\SS_ext',w_string,'.mat'],'name_save','ranked');
             end
         end
         ranked = [ranked;extra.ranked];
-        nam_save = [nam_save,extra.nam_save];
+        name_save = [name_save,extra.name_save];
     end
 end
 
@@ -92,33 +86,33 @@ function [w_string] = save_title(option,bweight)
     end
 end
 
-function [sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex,tab_sev,severity,ranked)
-    [months] = list_AGE(subject_details,nam_save,saved);
+function [sets,months,n] = create_sets_months(subject_details,name_save,saved,sex,severity)
+    [months] = list_AGE(subject_details,name_save,saved);
     if size(months,1)<size(months,2)
         months=months';
     end
     if strcmp(severity,'on')
-        [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,sex);
+        [sets] = set_allocate_severity(subject_details,name_save,saved,sex);
     elseif strcmp(sex,'Male')
-        [tmp_sets] = set_allocate_sex_TYPE(subject_details,nam_save,saved);
+        [tmp_sets] = set_allocate_sex_TYPE(subject_details,name_save,saved);
         sets = tmp_sets(5:8);
     elseif strcmp(sex,'Female')
-        [tmp_sets] = set_allocate_sex_TYPE(subject_details,nam_save,saved);
+        [tmp_sets] = set_allocate_sex_TYPE(subject_details,name_save,saved);
         sets = tmp_sets(1:4);
     elseif strcmp(sex,'compare')
-        [sets] = set_allocate_sex_TYPE(subject_details,nam_save,saved);
+        [sets] = set_allocate_sex_TYPE(subject_details,name_save,saved);
     else
-        [sets] = set_allocate(subject_details,nam_save,saved);
+        [sets] = set_allocate(subject_details,name_save,saved);
     end
 
     sets = rmv_frm_sets(sets,months); % age range 30 to 72 months
 
     %%% Adjust sets for ASD severity %%%
     if ~strcmp(severity,'on') % adjust sets to include only ASD severity levels and WP
-        sets = rmv_ADHD(sets,subject_details,nam_save,saved);
+        sets = rmv_ADHD(sets,subject_details,name_save,saved);
         n=3;
     else 
-        n=3;
+        n=4;
     end
 end
 
@@ -131,16 +125,15 @@ function [sets] = rmv_frm_sets(sets,months)
     end
 end
 
-function [sets] = rmv_ADHD(sets,subject_details,nam_save,saved)
+function [sets] = rmv_ADHD(sets,subject_details,name_save,saved)
     %%%  Remove ADHD
-    load('OND_details_+Krysiek.mat','OND_details')
     if length(sets)<8
-        [sets_OND] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
+        [sets_OND] = set_allocate_TYPE_OND(subject_details,name_save,saved);
         curr_set = sets{3};
         keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
         sets{3}=curr_set(ismember(curr_set,keep));
     else
-        [sets_OND] = set_allocate_TYPE_OND(subject_details,OND_details,nam_save,saved);
+        [sets_OND] = set_allocate_TYPE_OND(subject_details,name_save,saved);
         curr_set = sets{3};
         keep = [sets_OND{2},sets_OND{3},sets_OND{4}];
         sets{3}=curr_set(ismember(curr_set,keep));
@@ -179,16 +172,16 @@ function [all_sets,grps] = create_grps_allsets(results,sets)
     end	
 end
 
-function [n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination,len_subjects) 
-    n_swipes = zeros(1,length(nam_save));
+function [n_swipes,saved] = swipe_analysis(num,file_loc,name_save,destination,len_subjects) 
+    n_swipes = zeros(1,length(name_save));
     f_num = 0;
     
     list=[];
-    for jj = 1:length(nam_save)
+    for jj = 1:length(name_save)
         adj=zeros(num,num);
-        file_id = ['subject_',nam_save{jj},'.mat'];
+        file_id = ['subject_',name_save{jj},'.mat'];
     
-        if isfile([file_loc,file_id]) || isfile(['C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_zones\\',file_id])
+        if isfile([file_loc,file_id]) || isfile(['..\adjs\adj_zones\\',file_id])
             f_num = f_num + 1;
             load(file_id,'adj')
             if num == 12
@@ -494,13 +487,19 @@ function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,sa
     title(sex)
 
     %% Plot significance stars    
-    auto_star_plot(ic,all_sets,save_p,combos,option)
+    auto_star_plot(ic,all_sets,save_p,combos,option,severity)
 
 end
 
-function [] = auto_star_plot(ic,all_sets,save_p,combos,option)
-    mv = zeros(1,length(save_p));
-    for i = 1:length(save_p)
+function [] = auto_star_plot(ic,all_sets,save_p,combos,option,severity)
+    if strcmp(severity,'on')
+        n=4;
+    else
+        n=length(save_p);
+    end
+
+    mv = zeros(1,n);
+    for i = 1:n
         Ind=find(ic==i);
         mv(i) = max(all_sets(Ind));
     end

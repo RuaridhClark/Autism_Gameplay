@@ -1,11 +1,13 @@
-function [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,gender)
+function [sets] = set_allocate_severity(subject_details,name_save,saved,gender)
+    load('..\Data\severity_levels.mat','severity_levels')
+    
     sets = {[] [] [] []};
     for i = 1 : size(subject_details,1)
-        [I] = name_id(subject_details{i,1},nam_save);
-        [Ind] = name_id(subject_details{i,1},tab_sev.id_study_id(:));
+        [I] = name_id(subject_details{i,1},name_save);
+        [Ind] = name_id(subject_details{i,1},severity_levels(:,1));
 
         if ~isempty(Ind)
-            [sev_num] = severity_score(tab_sev.clinical_diagnosis__asd_severity_level{Ind});
+            [sev_num] = severity_score(severity_levels{Ind,2});
         else
             sev_num = 0;
         end
@@ -29,20 +31,17 @@ function [sets] = set_allocate_severity(subject_details,nam_save,saved,tab_sev,g
 
 end
 
-function [I] = name_id(name,nam_save)
-    I = find(strcmp(nam_save,name));
+function [I] = name_id(name,name_save)
+    I = find(strcmp(name_save,name));
 end
 
 function [sev_num] = severity_score(severity)
     if strcmp(severity,'1. Level 1 "Requiring support"')
         sev_num = 1;
-%         sets{1} = [sets{1},m];
     elseif strcmp(severity,' 2. Level 2 "Requiring substantial support"')
         sev_num = 2;
-%         sets{2} = [sets{2},m];
     elseif strcmp(severity,'3. Level 3 "Requiring very substantial support"')
         sev_num = 3;
-%         sets{3} = [sets{3},m];
     else
         sev_num = '';
     end

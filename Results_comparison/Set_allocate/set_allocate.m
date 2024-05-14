@@ -1,8 +1,8 @@
-function [sets] = set_allocate(subject_details,nam_save,saved)
+function [sets] = set_allocate(subject_details,name_save,saved)
     sets = {[] [] []};
 
     for i = 1 : size(subject_details,1)
-        [I] = name_id(subject_details{i,1},nam_save);
+        [I] = name_id(subject_details{i,1},name_save);
         if max(saved(:,i))>0 && subject_details{i,2} < 7 % removing subjects with no sharing game data
             if strcmp(subject_details{i,5},'TD')
                 sets{1} = [sets{1},I];
@@ -15,6 +15,6 @@ function [sets] = set_allocate(subject_details,nam_save,saved)
     end
 end
 
-function [I] = name_id(name,nam_save)
-    I = find(strcmp(nam_save,name));
+function [I] = name_id(name,name_save)
+    I = find(strcmp(name_save,name));
 end
