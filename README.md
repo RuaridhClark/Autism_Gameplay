@@ -1,31 +1,32 @@
-# Autism_Gameplay
-Tablet gameplay analysis
+# Code Accompanying Motor Organisation of Social Play in Children with Autism
 
-Ranking folder contains the scripts for running the comparisons
+This repository contains the data processing and analysis pipeline for the research paper on "Motor organisation of social play in children with autism".
 
-Changing the value of perturbation, affects the results
+## Directory Structure
 
-Pipeline
+### Track_Swipes Folder
 
-run fix_tapCount2
-identify swipes - run finger_swipes3
-create adj - create_adjs_end.m
-Rank subjects - subject_rank_CDI_...
+- `identify_swipes.m`: Processes raw touch tracking data to identify distinct swipes.
+- `allocate_swipes.m`: Organises and saves swipes into a file for each user.
 
-Ranking_Main folder contains the main analysis
-Ranking_Correlations folder contains the correlation analysis
+### Create_adj Folder
 
-adj_obj_end contains the adjacency matrices for swipe start to end links
-OBJ_end.mat contains the paper data swipe end locations
+- `create_adjs.m`: Tracks the zones that swipes pass through to create an adjacency matrix linking the origin and destination zones of swipes during gameplay.
 
-updated swipe zones:
-Ranking_Main_11072 folder
-Ranking_Correlations_110721 folder
-adjs_110721 folder
+### Metric_creation Folder
 
-%% Updated Pipeline
-fix_tapCount_errors or identify_swipes
-allocate_swipes
+- `Sharing_score_analysis.m`: Identifies the sharing score for each user by applying a perturbation to the adjacency matrix.
+- `Even_score_analysis.m`: Identifies the evenness of eigenvectors entries for the plate zones by monitoring the standard deviation of said entries.
 
+### Results_comparison Folder
 
-%% Krysiek data in C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data
+- `main_analysis.m`: Loads data, counts swipes, creates group sets for analysis (e.g. WP, ASD, OND), identifies correlations and compares results, plots results.
+
+## Notes
+
+- The analysis combines pre-trial and trial datasets with variation in raw data formats requiring differences in processing steps.
+- Raw swipe data is restricted, with only derived network data included with these files.
+
+## License
+
+This project is licensed under the terms of CC BY 4.0.

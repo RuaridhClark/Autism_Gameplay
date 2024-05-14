@@ -5,22 +5,24 @@
 %% Trial
 folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
 [tC_save,name_save] = track_swipes(folder_loc);
-save("Data\tC_trial.mat","name_save","tC_save")
+save("Data\tC_trial3.mat","name_save","tC_save")
 
 %% Pretrial
-folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
+folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
 [tC_save,name_save] = track_swipes(folder_loc);
-save("Data\tC_pretrial.mat","name_save","tC_save")
+save("Data\tC_pretrial3.mat","name_save","tC_save")
 
 %%%%%%% Functions %%%%%%%
 function [tC_save,name_save] = track_swipes(folder_loc)
-
-    %% initialise variables
-    name_save={};tC_save={};
     
     %% cycle through folders containing subjects
     D = dir(folder_loc);         % D is a structure
     D(1:3)=[];                  % Remove metadata rows
+
+    %% initialise variables
+    name_save=cell(1,length(D));
+    tC_save=cell(1,length(D));
+
     for f = 1:length(D)       
         currD = D(f).name; % Get the current subdirectory name
         [sub_id,file_loc] = read_subject_file(f,D,folder_loc);
@@ -46,7 +48,7 @@ function [tC_save,name_save] = track_swipes(folder_loc)
                 end
             end
             tC_save{f}=tC;        % save list of swipe_IDs for all touch points
-            nam_save{f}=currD;    % save subject ID
+            name_save{f}=currD;    % save subject ID
         end
     end
 end

@@ -1,10 +1,12 @@
-%%% Sharing Score Analysis
+%% Sharing Score Analysis
+% Identify the sharing score for each user by perturbing the matrix and
+% monitoring the eigenvectors of the plate zones.
 
 clear all
 folder1 = '..\Create_adj';
 folder2 = '..\';
 addpath(folder1,folder2)
-file_loc = '..\adjs\adj_foodpile\';
+file_loc = '..\adjs\adj_zones\';
 option = "pretrial";
 
 if option == "trial"
@@ -15,12 +17,12 @@ end
 
 %%
 num =16;        % number of ipad zones (nodes)
-pert_init=-.80;
+pert_init=-.80; % initial perturbation
 
 saved = zeros(num,length(nam_save));
 ranked = zeros(length(nam_save),1);
 
-type = 'plates';
+type = 'plates';    % 'plates' for direct sharing score, 'inter' for indirect sharing score 
 bweight = 0.001;
 
 for i = 1:length(nam_save)

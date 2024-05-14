@@ -1,11 +1,12 @@
-%%% Evenness Analysis
-
+%% Evenness Analysis
+% Identify the evenness of eigenvectors entries for the plate zones by
+% monitoring the standard deviation of said entries
 clear all
-folder1 = '..\Set_allocate';
-folder2 = '..\Create_adj';
-folder3 = '..\';
-addpath(folder1,folder2,folder3)
-file_loc = '..\adjs\adj_foodpile\';
+
+folder1 = '..\Create_adj';
+folder2 = '..\';
+addpath(folder1,folder2)
+file_loc = '..\adjs\adj_zones\';
 option = "trial";
 
 if option == "trial"
@@ -16,12 +17,11 @@ end
 
 %%
 num =16;        % number of ipad zones (nodes)
-pert_init=-.80;
 
 saved = zeros(num,length(nam_save));
 ranked = zeros(length(nam_save),1);
 
-type = 'plates';
+type = 'plates'; % 'plates' for direct sharing score, 'inter' for indirect sharing score 
 bweight = 0.01;
 
 for i = 1:length(nam_save)
@@ -41,7 +41,6 @@ for i = 1:length(nam_save)
         end
         
         list = [4,5,6,7]; check=1; 
-        pert =40*.01; prev=pert_init; tmp_pert=pert;
         while check ~= 0
             vec=zeros(1,num);
             P = -(L+diag(vec));
@@ -58,11 +57,11 @@ for i = 1:length(nam_save)
             [~,I]=sort(diag(real(D)),'desc');
             [~,II]=sort(abs(V(:,I(1))),'desc');
     
-            pert=std(abs(V(4:7,I(1))))/sum(abs(V(4:7,I(1))));
+            even=std(abs(V(4:7,I(1))))/sum(abs(V(4:7,I(1))));
             check=0;
         end
         if ranked(i)==0
-            ranked(i)=pert;
+            ranked(i)=even;
         end
     else 
         ranked(i)=NaN;
@@ -142,58 +141,6 @@ function [L] = adj2L_interplate(adj,num,bweight)
 
     L=-adj;
 
-end
-
-function [check,tmp_pert] = check_topfour(saved,check,i,tmp_pert,list,pert)
-    if max(saved(:,i))>0
-        if max(find(ismember(saved(:,i),list)==1))>4 
-            if check == 10
-                check = 0;
-            elseif check == -10
-                check = -10;
-            else
-                check = -1;
-            end
-            tmp_pert = pert;
-        else
-            if check == -10
-                check = 0;
-            elseif check == 10
-                check = 10;
-            else
-                check = 1;
-            end
-        end
-    end
-end
-
-function [pert,prev,check] = pert_bisect(pert,prev,tmp_pert,check)
-    dif = pert-prev;
-    prev=pert;
-    if check == 1
-        pert = pert + abs(dif)/2;
-    elseif check == -1
-        pert = pert - abs(dif)/2;
-    end
-
-    if abs(dif)/2 < 0.5*.01
-        if check == 1
-            check = 10;
-        elseif check == -1
-            check = -10;
-        end
-        pert=tmp_pert;
-    end
-end
-
-function [pert] = pert_iter(pert,check)
-    if check == 10
-        iter = 0.001;
-        pert = pert + iter;
-    elseif check == -10
-        iter = -0.001;
-        pert = pert + iter;
-    end
 end
 
 function [adj] = NNR_adj_conns_OBJ2(adj,bweight)

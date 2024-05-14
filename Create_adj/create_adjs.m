@@ -1,5 +1,7 @@
-% Clear workspace
-clear all;
+% Track the zones that swipes pass through zones to create an adjacency matrix 
+% linking the origin and destination zones of swipes during gameplay.
+
+clear all
 
 zone = defineZonePositions(); % define game zones
 
@@ -35,7 +37,7 @@ function [] = adj_processing(nam_save,swipe_save,swipe_data_loc,zone,option)
     
         if ~skip
             [adj] = adj_create(option,zone,filename,swipe);    
-            save([save_adj_loc,'adj_foodpile\',savename],'adj');  % Save adj
+            save([save_adj_loc,'adj_zones\',savename],'adj');  % Save adj
         end
     end
 end

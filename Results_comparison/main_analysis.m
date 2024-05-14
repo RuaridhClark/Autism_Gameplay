@@ -1,12 +1,12 @@
-%%% Sharing gameplay analysis - Ruaridh Clark %%%
+%% Main analysis script for sharing gameplay
 clear all
 
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = sharing score difference
 destination = 'plates'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
-sex = '';               % '' or 'Male' or 'Female' or 'compare'
-severity = '';          % 'on' or ''
-combine = 1;
-bweight = 0.01;
+sex = '';               % '' or 'Male' or 'Female' or 'compare' (switch for analysing sex groupings)
+severity = '';          % 'on' or '' (switch for analysing severity levels in ASD)
+combine = 1;            % Combine both pre-trial and trial data when combine = 1
+bweight = 0.01;         % Edge weight for complete graph
 
 [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destination);
 tab_sev = readtable([floc,'\eCRF.csv']);
@@ -24,7 +24,7 @@ tab_sev = readtable([floc,'\eCRF.csv']);
 %%% Results variable %%%
 [results] = results_variable(option,n_swipes,ranked,destination);
 
-%%% Plot results
+%%% Plot results %%%
 plot_options(results,sets,option,destination,num,months,sex,severity,n)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,16 +37,15 @@ function [num,folder_loc,alt_folder_loc,file_loc,floc] = setup(option,destinatio
 
     folder_loc = '..\';
     alt_folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data';
-    file_loc = [folder_loc,'\adjs\adj_foodpile\']; % should match zone type
+    file_loc = [folder_loc,'\adjs\adj_zones\']; % should match zone type
     floc=[alt_folder_loc,'\IQ_severity'];
 
-    folder1 = [folder_loc,'\Set_allocate'];
-    folder2 = [folder_loc,'\Plots'];
-    folder3 = [folder_loc,'\Create_adj'];
-    folder4 = [folder_loc,'\adjs\adj_foodpile'];
-    folder5 = [folder_loc,'\Data'];
-    folder6 = folder_loc;
-    addpath(folder1,folder2,folder3,folder4,folder5,folder6)
+    folder1 = [folder_loc,'\Plots'];
+    folder2 = [folder_loc,'\Create_adj'];
+    folder3 = [folder_loc,'\adjs\adj_zones'];
+    folder4 = [folder_loc,'\Data'];
+    folder5 = folder_loc;
+    addpath(folder1,folder2,folder3,folder4,folder5)
 end
 
 function [nam_save,saved,ranked,list] = load_trial_data(num,folder_loc,destination,bweight)
@@ -64,11 +63,10 @@ end
 
 function [nam_save,ranked,subject_details] = load_pretrial_data(nam_save,ranked,combine,num,folder_loc,destination,bweight)
     if combine == 0
-        load('subject_details.mat')
-        subject_details = subject_details_776;
+        load('subject_details_trial.mat')
     elseif combine == 1
-        addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_foodpile'
-        load('subject_details_combine_ond.mat')
+        addpath 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_zones'
+        load('subject_details_combine.mat')
         subject_details = subject_details_combine;
         [w_string] = save_title('pretrial',bweight);
         if num == 12 || num == 16
@@ -113,7 +111,7 @@ function [sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex
         [sets] = set_allocate(subject_details,nam_save,saved);
     end
 
-    sets = rmv_frm_sets(sets,months,ranked); % age range 30 to 72 months
+    sets = rmv_frm_sets(sets,months); % age range 30 to 72 months
 
     %%% Adjust sets for ASD severity %%%
     if ~strcmp(severity,'on') % adjust sets to include only ASD severity levels and WP
@@ -124,7 +122,7 @@ function [sets,months,n] = create_sets_months(subject_details,nam_save,saved,sex
     end
 end
 
-function [sets] = rmv_frm_sets(sets,months,ranked)
+function [sets] = rmv_frm_sets(sets,months)
     exclude = find(months>72); % 72 month threshold
     exclude = [exclude;find(months<30)]; %% 30 Months threshold
     for i = 1 : length(sets)
@@ -190,7 +188,7 @@ function [n_swipes,saved] = swipe_analysis(num,file_loc,nam_save,destination,len
         adj=zeros(num,num);
         file_id = ['subject_',nam_save{jj},'.mat'];
     
-        if isfile([file_loc,file_id]) || isfile(['C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_foodpile\\',file_id])
+        if isfile([file_loc,file_id]) || isfile(['C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\GitHub\Autism_Gameplay\adjs\adj_zones\\',file_id])
             f_num = f_num + 1;
             load(file_id,'adj')
             if num == 12
