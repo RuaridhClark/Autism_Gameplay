@@ -38,7 +38,7 @@ function [] = adj_processing(name_save,swipe_save,swipe_data_loc,zone,option)
     
         if ~skip
             [adj] = adj_create(option,zone,filename,swipe);    
-            save([save_adj_loc,'adj_zones\',savename],'adj');  % Save adj
+            save(['..\adjs\adj_zones\',savename],'adj');  % Save adj
         end
     end
 end
@@ -112,8 +112,17 @@ function [adj] = adj_create(option,zone,filename,swipe)
         tab = renamevars(tab,["x","y"],["X","Y"]);
     end
 
+    % Reduce tab to unique values
+    [~,at,~] = unique(tab.Time,'stable');
+    [~,ax,~] = unique(tab.X,'stable');
+    [~,ay,~] = unique(tab.Y,'stable');
+
+    keep = unique([at;ax;ay],'first');
+
+    tab=tab(keep,:);
+
     adj = zeros(16,16);
-          
+    con_list = [];      
     % Process each swipe
     for m = 1 : length(swipe)
         prev_n = [];

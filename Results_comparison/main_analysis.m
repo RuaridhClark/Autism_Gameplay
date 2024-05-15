@@ -4,7 +4,7 @@ clear all
 option = 1;             % 1 = n_swipes, 2 = sharing score, 3 = sharing score difference
 destination = 'plates'; % n_swipes for food delivery swipes ('plates') or inter-plate swipes ('inter')
 sex = '';               % '' or 'Male' or 'Female' or 'compare' (switch for analysing sex groupings)
-severity = 'on';          % 'on' or '' (switch for analysing severity levels in ASD)
+severity = '';          % 'on' or '' (switch for analysing severity levels in ASD)
 combine = 1;            % Combine both pre-trial and trial data when combine = 1
 bweight = 0.01;         % Edge weight for complete graph
 

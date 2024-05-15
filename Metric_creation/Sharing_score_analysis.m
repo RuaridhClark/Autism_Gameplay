@@ -7,7 +7,7 @@ folder1 = '..\Create_adj';
 folder2 = '..\';
 addpath(folder1,folder2)
 file_loc = '..\adjs\adj_zones\';
-option = "pretrial";
+option = "trial";   % 'trial' or 'pretrial' run both to create data for Results_comparison
 
 if option == "trial"
     load('swipes_trial.mat','name_save')

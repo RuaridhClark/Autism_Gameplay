@@ -3,12 +3,12 @@
 % when multiple swipes occur simultaneously. Also check for and correct errors in the touch count.
 
 %% Trial
-folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
+folder_loc = NaN; % [data restricted]
 [tC_save,name_save] = track_swipes(folder_loc);
 save("Data\tC_trial_dummy.mat","name_save","tC_save")
 
 %% Pretrial
-folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\';
+folder_loc = NaN; % [data restricted]
 [tC_save,name_save] = track_swipes(folder_loc);
 save("Data\tC_pretrial_dummy.mat","name_save","tC_save")
 
