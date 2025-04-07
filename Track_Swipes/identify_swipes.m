@@ -3,17 +3,17 @@
 % when multiple swipes occur simultaneously. Also check for and correct errors in the touch count.
 
 %% Trial
-folder_loc = NaN; % [data restricted]
-[tC_save,name_save] = track_swipes(folder_loc);
-save("Data\tC_trial_dummy.mat","name_save","tC_save")
+% folder_loc = NaN; % [data restricted]
+% [tC_save,name_save] = track_swipes(folder_loc,'trial');
+% save("Data\tC_trial_dummy.mat","name_save","tC_save")
 
 %% Pretrial
-folder_loc = NaN; % [data restricted]
-[tC_save,name_save] = track_swipes(folder_loc);
+folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\'; %NaN; % [data restricted]
+[tC_save,name_save] = track_swipes(folder_loc,'pretrial');
 save("Data\tC_pretrial_dummy.mat","name_save","tC_save")
 
 %%%%%%% Functions %%%%%%%
-function [tC_save,name_save] = track_swipes(folder_loc)
+function [tC_save,name_save] = track_swipes(folder_loc,option)
     
     %% cycle through folders containing subjects
     D = dir(folder_loc);         % D is a structure
@@ -25,11 +25,11 @@ function [tC_save,name_save] = track_swipes(folder_loc)
 
     for f = 1:length(D)       
         currD = D(f).name; % Get the current subdirectory name
-        [sub_id,file_loc] = read_subject_file(f,D,folder_loc);
+        [sub_id,file_loc] = read_subject_file(f,D,folder_loc,option);
     
         if isfile([file_loc,sub_id])        % Check if sharing data is available for subject "currD"
             filename = [file_loc,sub_id];
-            [tab, starts, ends] = read_swipe_file(filename);    % tab is list of recorded touches, start and end are lists of start and end swipe touches
+            [tab, starts, ends] = read_swipe_file(filename,option);    % tab is list of recorded touches, start and end are lists of start and end swipe touches
     
             [valid,~,starts,~] = check_validity(tab,starts,ends);  % Check and remove duplicate touch recordings
     
@@ -48,25 +48,36 @@ function [tC_save,name_save] = track_swipes(folder_loc)
                 end
             end
             tC_save{f}=tC;        % save list of swipe_IDs for all touch points
-            name_save{f}=currD;    % save subject ID
+            name_save{f}=erase(currD,'.mat');    % save subject ID
         end
     end
 end
 
-function [sub_id,file_loc] = read_subject_file(f,D,folder_loc)
+function [sub_id,file_loc] = read_subject_file(f,D,folder_loc,option)
     currD = D(f).name;              % Get the current subdirectory name
     file_loc =[folder_loc,currD,'\'];
-    sub_id = [currD,'.Sharing.TouchData.typed.csv'];
+    if strcmp(option,'trial')
+        sub_id = [currD,'.Sharing.TouchData.typed.csv'];
+    elseif strcmp(option,'pretrial')
+        sub_id = '';
+    end
 end
 
-function [tab, starts, ends] = read_swipe_file(filename)
-    tab=sortrows(readtable(filename),4);
-    if iscell(tab.X(1))             % Convert strings to doubles for X and Y
-        tab=sortrows(readtable(filename),14);
-        tab.X=strrep(tab.X,',','.');
-        tab.Y=strrep(tab.Y,',','.');
-        tab.X=str2double(tab.X);
-        tab.Y=str2double(tab.Y);
+function [tab, starts, ends] = read_swipe_file(filename,option)
+
+    if strcmp(option,'trial')
+        tab=sortrows(readtable(filename),4);
+        if iscell(tab.X(1))             % Convert strings to doubles for X and Y
+            tab=sortrows(readtable(filename),14);
+            tab.X=strrep(tab.X,',','.');
+            tab.Y=strrep(tab.Y,',','.');
+            tab.X=str2double(tab.X);
+            tab.Y=str2double(tab.Y);
+        end
+    elseif strcmp(option,'pretrial')
+        load(filename,'subject_table');
+        tab=sortrows(subject_table,8);
+        tab = renamevars(tab,["x","y","time","touch_phase"],["X","Y","Time","TouchPhase"]);
     end
 
     % Reduce tab to unique values

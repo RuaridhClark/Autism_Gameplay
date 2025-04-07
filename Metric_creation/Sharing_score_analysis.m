@@ -7,7 +7,7 @@ folder1 = '..\Create_adj';
 folder2 = '..\';
 addpath(folder1,folder2)
 file_loc = '..\adjs\adj_zones\';
-option = "trial";   % 'trial' or 'pretrial' run both to create data for Results_comparison
+option = "pretrial";   % 'trial' or 'pretrial' run both to create data for Results_comparison
 
 if option == "trial"
     load('swipes_trial.mat','name_save')
@@ -23,9 +23,10 @@ saved = zeros(num,length(name_save));
 ranked = zeros(length(name_save),1);
 
 type = 'plates';    % 'plates' for direct sharing score, 'inter' for indirect sharing score 
-bweight = 0.001;
+bweight = 0.1;
 
 for i = 1:length(name_save)
+
     file_id = ['subject_',name_save{i},'.mat'];
 
     if isfile([file_loc,file_id])

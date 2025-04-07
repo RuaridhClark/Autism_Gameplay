@@ -36,7 +36,7 @@ function [num,alt_folder_loc,file_loc] = setup(option,destination)
 
     alt_folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data';
 
-    file_loc = '..\adjs\adj_zones';
+    file_loc = '..\adjs\adj_zones\';
     folder1 = '..\Data';
     folder2 = 'Set_allocate';
     addpath(file_loc,folder1,folder2)
@@ -181,9 +181,9 @@ function [n_swipes,saved] = swipe_analysis(num,file_loc,name_save,destination,le
         adj=zeros(num,num);
         file_id = ['subject_',name_save{jj},'.mat'];
     
-        if isfile([file_loc,file_id]) || isfile(['..\adjs\adj_zones\\',file_id])
+        if isfile([file_loc,file_id])
             f_num = f_num + 1;
-            load(file_id,'adj')
+            load([file_loc,file_id],'adj')
             if num == 12
                 [adj] = adj_snap2zones(adj,num);
             end
@@ -280,121 +280,123 @@ function [adj] = adj_snap2zones(adj,num)
 end
 
 function [] = plot_results(results,months,sets,id,option,destination,num,sex,severity)
+
+    [sev_choice] = severity_switch(severity,id);
+
+    x=months(sets{id}); 
+    y=results(sets{id});
+
+    x=x(~isnan(y)); y=y(~isnan(y));
+
+    [pf,S] = polyfit(x,y,2);
+    [y_fit,delta] = polyval(pf,x,S); % Evaluate the first-degree polynomial fit in p at the points in x
+    
+    [r,p] = corr(x,y,'Type','Spearman'); % Spearman correlation
+    
+    plot_and_save(x,y,sev_choice,id,y_fit,delta,r,p,option,destination,num,sex);
+    
+end
+
+function [sev_choice] = severity_switch(severity,id)
     if strcmp(severity,'on')
         sev_choice = id-1;
     else
         sev_choice = 0;
     end
+end
 
-    figure;
-    x=months(sets{id}); 
-    y=results(sets{id});
+function [] = plot_and_save(x,y,sev_choice,id,y_fit,delta,r,p,option,destination,num,sex)
 
-    [pf,S] = polyfit(x,y,2);
-    [y_fit,delta] = polyval(pf,x,S); % Evaluate the first-degree polynomial fit in p at the points in x
-    
+    [clr] = set_colour(sev_choice,id);
+    linetype='-';
     [~,Ind]=sort(x,'asc');
 
-    [r,p] = corr(x,y,'Type','Spearman');
-    
-    if p<10.05
-        linetype='-';
-    end
-
-    if sev_choice>0
-        if sev_choice==1
-            clr = [.93,.69,.13];
-        elseif sev_choice==2
-            clr = [.85,.33,.1];
-        elseif sev_choice==3
-            clr=[.64,.08,.18];
-        end
-    else
-        if id == 1
-            clr = [0, 0.4470, 0.7410];
-        elseif id == 2
-            clr = [0.8500, 0.3250, 0.0980];
-        elseif id == 3
-            clr = [0.47,0.67,0.19];
-        elseif id == 4
-            clr = [0.4940, 0.1840, 0.5560];
-        end
-    end
-
+    figure;
     scatplot=scatter(x(Ind),y(Ind),55,'o','MarkerFaceColor',clr,'MarkerEdgeColor',clr); 
     % Set property MarkerFaceAlpha and MarkerEdgeAlpha to <1.0
     scatplot.MarkerFaceAlpha = .3;
     scatplot.MarkerEdgeAlpha = .5;
     hold on
-    if p<10.05
-        plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
-        plot(x(Ind),y_fit(Ind)+1*delta(Ind),linetype,'color',clr,'LineWidth',1.5,'LineStyle',':')
-        plot(x(Ind),y_fit(Ind)-1*delta(Ind),linetype,'color',clr,'LineWidth',1.5,'LineStyle',':')
-    end
+    plot(x(Ind),y_fit(Ind),linetype,'color',clr,'LineWidth',1.5)
+    plot(x(Ind),y_fit(Ind)+1*delta(Ind),linetype,'color',clr,'LineWidth',1.5,'LineStyle',':')
+    plot(x(Ind),y_fit(Ind)-1*delta(Ind),linetype,'color',clr,'LineWidth',1.5,'LineStyle',':')
 
-    if p<0.001
-        text(0.05,.97+.025,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
-        stars_only(3)
-    elseif p<0.01
-        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
-        stars_only(2)
-    elseif p<0.05
-        text(0.05,.97+.025,['p = ',sprintf('%1.3f', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
-        stars_only(1)
-    elseif p<10
-        text(0.05,.97+.025,['p = ',sprintf('%1.3f', p)],'Units','normalized','fontsize', 11)
-        text(0.06,.91+.025,['r = ',sprintf('%1.2f', r)],'Units','normalized','fontsize', 11)
-    end
+    p_r_stars(p,r)
 
     xlabel('Age (months)','fontsize', 11)
-    if option == 1
-        if strcmp(destination,'plates')
-            if num == 12
-                ylabel('No. of food delivery swipes','fontsize',14)
-            end
-        elseif strcmp(destination,'food')
-            ylabel('No. of zone 2 only swipes ','fontsize',14)
-        elseif strcmp(destination,'inter')
-            ylabel('No. of inter-plate swipes','fontsize',14)
-        elseif strcmp(destination,'evenness')
-            ylabel('Standard deviation','fontsize',14)
-        elseif strcmp(destination,'total')
-            ylabel('Total no. of swipes','fontsize',14)
-        end
-    elseif option == 2
-        if num == 12
-            ylabel('Direct sharing score','fontsize',14)
-            if strcmp(destination,'inter')
-                ylabel('Indirect sharing score','fontsize',14)
-            end
-        end
-    end
-    
-    if id == 1
-        titletxt = 'WP';
-    elseif sev_choice == 1
-        titletxt = '              ASD - Level 1';
-    elseif sev_choice == 2
-        titletxt = '              ASD - Level 2';
-    elseif sev_choice == 3
-        titletxt = '              ASD - Level 3';
-    elseif id == 2
-        titletxt = 'ASD';
-    elseif id == 3
-        titletxt = 'OND';
-    end
 
-    if strcmp(sex,'')
-        title(titletxt)
-    else
-        title([titletxt,' - ',sex])
-    end
+    [name] = add_ylabel(option,destination,num);
+    
+    [titletxt] = add_title(sev_choice,id,sex);
 
     f=gcf;
     f.Position = [403,340,330,313];
+
+    set_axis(option,destination)
+
+    save_figure(destination,name,titletxt,sex,sev_choice)
+end
+
+function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,p_values,combos)
+
+    f=figure;
+    b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
+    set(b,'LineWidth',1.5)
+    
+    %% Add scatter points
+    hold on
+    [~,~,ic]=unique(grps,'stable');
+    
+    if strcmp(severity,'on')
+        colors = [0, 0.4470, 0.7410;.93,.69,.13; .85,.33,.1; .64,.08,.18];
+    else
+        colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
+    end
+        
+    for i = 1:4
+        Ind=find(ic==i);
+        scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.15,'jitter','on','jitterAmount',0.15);
+    end
+    
+    if strcmp(severity,'on')
+        xticklabels({'WP','ASD 1','ASD 2','ASD 3'});
+    else
+        xticklabels({'WP','ASD','OND'});
+    end
+    
+    [name] = add_ylabel(option,destination,num);
+    
+    box off
+    
+    f.Position = [403,340,300,313];
+
+    set_axis_boxplot(option,destination);
+
+    title(sex)
+
+    %% Plot significance stars    
+    auto_star_plot(ic,all_sets,p_values,combos,option,severity)
+
+    save_figure(destination,['boxplot_',name],'',sex,'')
+end
+
+function [] = p_r_stars(p,r)
+    if p<0.001
+        text(0.05,.97+.025,['p = ',sprintf('%1.1e', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,strrep(['r = ',sprintf('%1.2f', r)],'-','−'),'Units','normalized','fontsize', 11)
+        stars_only(3)
+    elseif p<0.01
+        text(0.05,.97+.025,['p = ',sprintf('%1.4f', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,strrep(['r = ',sprintf('%1.2f', r)],'-','−'),'Units','normalized','fontsize', 11)
+        stars_only(2)
+    elseif p<0.05
+        text(0.05,.97+.025,['p = ',sprintf('%1.3f', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,strrep(['r = ',sprintf('%1.2f', r)],'-','−'),'Units','normalized','fontsize', 11)
+        stars_only(1)
+    elseif p<10
+        text(0.05,.97+.025,['p = ',sprintf('%1.3f', p)],'Units','normalized','fontsize', 11)
+        text(0.06,.91+.025,strrep(['r = ',sprintf('%1.2f', r)],'-','−'),'Units','normalized','fontsize', 11)
+    end
 end
 
 function [] = stars_line(n_stars,height,strt,nd,drp2)
@@ -433,62 +435,148 @@ function [] = stars_only(n_stars)
     end
 end
 
-function [] = Plot_boxplots(all_sets,grps,option,destination,num,sex,severity,p_values,combos)
-    f=figure;
-    b=boxplot(all_sets,grps,'Notch','on','Color',[.5,.5,.25]);
-    set(b,'LineWidth',1.5)
-    
-    %% Add scatter points
-    hold on
-    [~,~,ic]=unique(grps,'stable');
-    
-    if strcmp(severity,'on')
-        colors = [0, 0.4470, 0.7410;.93,.69,.13; .85,.33,.1; .64,.08,.18];
-    else
-        colors = [0, 0.4470, 0.7410;0.8500, 0.3250, 0.0980;0.47,0.67,0.19;0.4940, 0.1840, 0.5560];
-    end
-        
-    for i = 1:4
-        Ind=find(ic==i);
-        scatter(ic(Ind),all_sets(Ind),[],colors(i,:),'filled','MarkerFaceAlpha',0.15,'jitter','on','jitterAmount',0.15);
-    end
-    
-    if strcmp(severity,'on')
-        xticklabels({'WP','ASD 1','ASD 2','ASD 3'});
-    else
-        xticklabels({'WP','ASD','OND'});
-    end
-    
-    if option == 1 
+function [name] = add_ylabel(option,destination,num)
+    if option == 1
         if strcmp(destination,'plates')
             if num == 12
                 ylabel('No. of food delivery swipes','fontsize',14)
+                name = 'n_swipes_food_';
             end
         elseif strcmp(destination,'food')
-            ylabel('No. of swipes (zone 2 only)','fontsize',14)
+            ylabel('No. of zone 2 only swipes ','fontsize',14)
+            name = 'n_swipes_2_';
         elseif strcmp(destination,'inter')
             ylabel('No. of inter-plate swipes','fontsize',14)
-        elseif strcmp(destination,'evenness')
-            ylabel('Standard deviation','fontsize',14)
+            name = 'n_swipes_inter_';
+        elseif strcmp(destination,'evenness_direct')
+            ylabel('Direct standard deviation','fontsize',14)
+            name = 'direct_std_';
+        elseif strcmp(destination,'evenness_indirect')
+            ylabel('Indirect standard deviation','fontsize',14)
+            name = 'indirect_std_';
+        elseif strcmp(destination,'total')
+            ylabel('Total no. of swipes','fontsize',14)
+            name = 'n_swipes_total_';
+        elseif strcmp(destination,'attentive_direct')
+            ylabel('Direct attentiveness ratio','fontsize',14)
+            name = 'direct_attentive_';
+        elseif strcmp(destination,'attentive_indirect')
+            ylabel('Indirect attentiveness ratio','fontsize',14)
+            name = 'indirect_attentive_';
         end
     elseif option == 2
         if num == 12
             ylabel('Direct sharing score','fontsize',14)
+            name = 'sharing_direct_';
             if strcmp(destination,'inter')
                 ylabel('Indirect sharing score','fontsize',14)
+                name = 'sharing_indirect_';
             end
         end
+    elseif option == 3
+        ylabel('Sharing score difference','fontsize',14)
+        name = 'sharing_diff_';
     end
-    
-    box off
-    
-    f.Position = [403,340,300,313];
+end
 
-    title(sex)
+function [titletxt] = add_title(sev_choice,id,sex)
+    if id == 1
+        titletxt = 'WP';
+    elseif sev_choice == 1
+        titletxt = '              ASD - Level 1';
+    elseif sev_choice == 2
+        titletxt = '              ASD - Level 2';
+    elseif sev_choice == 3
+        titletxt = '              ASD - Level 3';
+    elseif id == 2
+        titletxt = 'ASD';
+    elseif id == 3
+        titletxt = 'OND';
+    end
 
-    %% Plot significance stars    
-    auto_star_plot(ic,all_sets,p_values,combos,option,severity)
+    if strcmp(sex,'')
+        title(titletxt)
+    else
+        title([titletxt,' - ',sex])
+    end
+end
 
+function [clr] = set_colour(sev_choice,id)
+    if sev_choice>0
+        if sev_choice==1
+            clr = [.93,.69,.13];
+        elseif sev_choice==2
+            clr = [.85,.33,.1];
+        elseif sev_choice==3
+            clr=[.64,.08,.18];
+        end
+    else
+        if id == 1
+            clr = [0, 0.4470, 0.7410];
+        elseif id == 2
+            clr = [0.8500, 0.3250, 0.0980];
+        elseif id == 3
+            clr = [0.47,0.67,0.19];
+        elseif id == 4
+            clr = [0.4940, 0.1840, 0.5560];
+        end
+    end
+end
+
+function [] = set_axis(option,destination)
+    if option == 2
+        axis([28 74 -.65 .3])
+    elseif option == 1
+        if strcmp(destination,'inter') 
+        	axis([28 74 0 60])
+        elseif strcmp(destination,'food') 
+            axis([28 74 0 164])
+        elseif strcmp(destination,'total')
+            axis([28 74 0 650])
+        elseif contains(destination,'attentive')
+            axis([28 74 0 1.15])
+        elseif contains(destination,'evenness')
+            axis([28 74 0 0.5])
+        else
+            axis([28 74 0 147])
+        end
+    elseif option == 3
+        axis([28 74 -.15 0.5])
+    end
+end
+
+function [] = set_axis_boxplot(option,destination)
+    if option == 2
+        axis([0.5 3.5 -.65 .3])
+    elseif option == 1
+        if strcmp(destination,'inter') 
+        	axis([0.5 3.5 0 60])
+        elseif strcmp(destination,'food') 
+            axis([0.5 3.5 0 164])
+        elseif strcmp(destination,'total')
+            axis([0.5 3.5 0 650])
+        elseif contains(destination,'attentive')
+            axis([0.5 3.5 0 1.15])
+        elseif contains(destination,'evenness')
+            axis([.5 3.5 0 0.5])
+        else
+            axis([0.5 3.5 0 147])
+        end
+    elseif option == 3
+        axis([0.5 3.5 -.15 0.5])
+    end
+end
+
+function [] = save_figure(destination,name,titletxt,sex,sev_choice)
+    if strcmp(destination,'food')
+        saveas(gcf,['Figures/food_',name,titletxt,'_',sex,'.png'])
+    elseif sev_choice>0
+        saveas(gcf,['Figures/severity_',name,titletxt,'_',sex,'.png'])
+    elseif strcmp(destination,'inter')
+        saveas(gcf,['Figures/',name,titletxt,'_',sex,'_inter.png'])
+    else
+        saveas(gcf,['Figures/',name,titletxt,'_',sex,'_plates.png'])
+    end
 end
 
 function [] = auto_star_plot(ic,all_sets,p_values,combos,option,severity)
@@ -504,7 +592,7 @@ function [] = auto_star_plot(ic,all_sets,p_values,combos,option,severity)
         mv(i) = max(all_sets(Ind));
     end
 
-    if option == 2
+    if option == 2 || option == 3
         drp = max(mv)*0.175;
     elseif option == 1
         drp = max(mv)*0.05;
@@ -531,21 +619,56 @@ function [] = auto_star_plot(ic,all_sets,p_values,combos,option,severity)
 end
 
 function [p_values,combos] = significance_check(results,sets,n)
-    % pairwise significance check
-    combos=nchoosek(1:n,2);
-    p_values = zeros(1,size(combos,1));
-    for j = 1 : size(combos,1)
-        num = combos(j,:);
-        len_rankeds = [ones(length(sets{num(1)}),1);2*ones(length(sets{num(2)}),1)];
-        pval_kw = kruskalwallis([results(sets{num(1)})';results(sets{num(2)})'],len_rankeds,'off');
-
+    % Pairwise significance check and effect size calculation
+    combos = nchoosek(1:n, 2); % All pairwise combinations
+    p_values = zeros(1, size(combos, 1)); % Preallocate for p-values
+    effect_sizes = zeros(1, size(combos, 1)); % Preallocate for effect sizes (e.g., Cohen's d)
+    
+    for j = 1:size(combos, 1)
+        num = combos(j, :);
+        
+        % Group labels for Kruskal-Wallis test
+        len_rankeds = [ones(length(sets{num(1)}), 1); 2 * ones(length(sets{num(2)}), 1)];
+        pval_kw = kruskalwallis([results(sets{num(1)})'; results(sets{num(2)})'], len_rankeds, 'off');
+    
         % Extract the data for the two groups
         group1 = results(sets{num(1)});
         group2 = results(sets{num(2)});
         
         % Perform the two-tailed unpaired Wilcoxon test
         [pval, ~] = ranksum(group1, group2);
-        p_values(1,j) = pval;
+        p_values(1, j) = pval;
+        
+        % Calculate effect size (Cohen's d) if the comparison is significant
+        if pval < 0.05
+            % Descriptive statistics
+            mean1 = mean(group1);
+            mean2 = mean(group2);
+            std1 = std(group1);
+            std2 = std(group2);
+            n1 = length(group1);
+            n2 = length(group2);
+            
+            % Pooled standard deviation
+            pooled_std = sqrt(((n1 - 1) * std1^2 + (n2 - 1) * std2^2) / (n1 + n2 - 2));
+            
+            % Cohen's d
+            effect_sizes(1, j) = (mean2 - mean1) / pooled_std;
+        else
+            effect_sizes(1, j) = NaN; % Not significant, no effect size calculated
+        end
+    end
+
+    % Display significant comparisons and effect sizes
+    disp('Pairwise comparisons:');
+    for j = 1:size(combos, 1)
+        if p_values(1, j) < 0.05
+            fprintf('Comparison %d-%d: p = %.4f, Cohen''s d = %.4f\n', ...
+                    combos(j, 1), combos(j, 2), p_values(1, j), effect_sizes(1, j));
+        else
+            fprintf('Comparison %d-%d: p = %.4f (not significant)\n', ...
+                    combos(j, 1), combos(j, 2), p_values(1, j));
+        end
     end
 end
 
@@ -621,6 +744,8 @@ function [p_values] = plot_options(results,sets,option,destination,num,months,se
         [all_sets,grps] = create_grps_allsets_sex(results,sets);
         boxplot_sex_cmpr(all_sets,grps,option,destination,num)
         [p_values] = significance_sex(results',sets);
+        axis([0.5 8.5 0 150])
+        saveas(gcf,['Figures/Compare_',destination,'.png'])
     else                        % display all or male/female sex
         for id = 1 : n        % TD, ASD, OND
             plot_results(results',months,sets,id,option,destination,num,sex,severity)

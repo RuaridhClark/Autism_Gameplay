@@ -6,21 +6,20 @@ clear all
 
 zone = defineZonePositions(); % define game zones
 
-%%%% Trial data
-swipe_data_loc = NaN; % [data restricted]
-load('swipes_trial.mat');
-save_adj_loc = '..\adjs\';
-
-adj_processing(name_save,swipe_save,swipe_data_loc,zone,'trial');
-
-%%%%
+% %%%% Trial data
+% swipe_data_loc = NaN; % [data restricted]
+% swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\PlayCare\';
+% load('swipes_trial.mat');
+% save_adj_loc = '..\adjs\';
+% 
+% adj_processing(name_save,swipe_save,swipe_data_loc,zone,'trial');
+% %%%%
 
 %%%% Pre-trial data
-swipe_data_loc = NaN; % [data restricted]
+swipe_data_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\'; %NaN; % [data restricted]
 load('swipes_pretrial.mat')
 
 adj_processing(name_save,swipe_save,swipe_data_loc,zone,'pretrial');
-
 %%%%
 
 %%%%%% Functions %%%%%%
@@ -38,7 +37,7 @@ function [] = adj_processing(name_save,swipe_save,swipe_data_loc,zone,option)
     
         if ~skip
             [adj] = adj_create(option,zone,filename,swipe);    
-            save(['..\adjs\adj_zones\',savename],'adj');  % Save adj
+%ADD BACK IN             save(['..\adjs\adj_zones\',savename],'adj');  % Save adj
         end
     end
 end
@@ -85,7 +84,7 @@ end
 function [filename,savename,skip] = setup_pretrial(i,name_save,swipe_data_loc)
     skip = 0;
 
-    file_id = [name_save{i}];
+    file_id = [name_save{i},'.mat'];
     
     if isfile([swipe_data_loc,file_id])
         filename = [swipe_data_loc,file_id];
@@ -109,7 +108,7 @@ function [adj] = adj_create(option,zone,filename,swipe)
     elseif strcmp(option,'pretrial')
         load(filename,'subject_table');
         tab=sortrows(subject_table,8); % sort table according to time
-        tab = renamevars(tab,["x","y"],["X","Y"]);
+        tab = renamevars(tab,["x","y","time"],["X","Y","Time"]);
     end
 
     % Reduce tab to unique values
@@ -122,7 +121,15 @@ function [adj] = adj_create(option,zone,filename,swipe)
     tab=tab(keep,:);
 
     adj = zeros(16,16);
-    con_list = [];      
+%     con_list = [];      
+    figure
+    for ii = 1 : 16
+    hold on
+    plot([zone(ii,1),zone(ii,2)],[zone(ii,3),zone(ii,3)],'k')
+    plot([zone(ii,1),zone(ii,2)],[zone(ii,4),zone(ii,4)],'k')
+    plot([zone(ii,1),zone(ii,1)],[zone(ii,3),zone(ii,4)],'k')
+    plot([zone(ii,2),zone(ii,2)],[zone(ii,3),zone(ii,4)],'k')
+    end
     % Process each swipe
     for m = 1 : length(swipe)
         prev_n = [];
@@ -158,8 +165,20 @@ function [adj] = adj_create(option,zone,filename,swipe)
             
             if ~isempty(prev_n) && ~isempty(nn)
                 adj(prev_n,nn) = adj(prev_n,nn) + 1; % Increment the adjacency matrix at (prev_n, nn)
+%                 con_list = [con_list;prev_n,nn];
+%                 [prev_n,nn]
                 prev_n = nn; % Update prev_n to nn
+                k = swipe{m};
+                hold on
+                p = plot(tab.X(k),tab.Y(k),'b',LineWidth=2);
+                s1 = scatter(tab.X(k(1)),tab.Y(k(1)),'k.');
+                s2 = scatter(tab.X(k(end)),tab.Y(k(end)),'ko');
+%                 delete(p)
+%                 delete(s1)
+%                 delete(s2)
             end
         end
     end
+    hold on
+    scatter(tab.X(:),tab.Y(:),'r.');
 end

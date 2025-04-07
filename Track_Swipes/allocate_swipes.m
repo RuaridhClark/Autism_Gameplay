@@ -3,15 +3,15 @@ clear all
 addpath("Data")
 
 %% Trial
-file_loc = NaN; % [data restricted]
-load('tC_trial.mat','tC_save','name_save') % load each swipe identified 
-
-[swipe_save] = create_swipe_files(tC_save,name_save,file_loc,'trial');
-
-save('..\Create_adj\swipes_trial.mat','swipe_save','name_save')
+% file_loc = NaN; % [data restricted]
+% load('tC_trial.mat','tC_save','name_save') % load each swipe identified 
+% 
+% [swipe_save] = create_swipe_files(tC_save,name_save,file_loc,'trial');
+% 
+% save('..\Create_adj\swipes_trial.mat','swipe_save','name_save')
 
 %% Pretrial
-file_loc = NaN; % [data restricted]
+file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\'; %NaN; % [data restricted]
 load('tC_pretrial.mat','tC_save','name_save') % load each swipe identified 
 
 [swipe_save] = create_swipe_files(tC_save,name_save,file_loc,'pretrial');
@@ -61,7 +61,7 @@ end
 function [filename,savename,skip] = setup_pretrial(i,name_save,swipe_data_loc)
     skip = 0;
 
-    file_id = [name_save{i}];
+    file_id = [name_save{i},'.mat'];
     
     if isfile([swipe_data_loc,file_id])
         filename = [swipe_data_loc,file_id];
