@@ -2,20 +2,18 @@
 clear all
 addpath("Data")
 
-%% Trial
-% file_loc = NaN; % [data restricted]
+Data_loc = NaN; % [data folder shared with reviewers]
+
+% %% Trial
+% file_loc = [Data_loc,'\Data\PlayCare\']; % [data restricted]
 % load('tC_trial.mat','tC_save','name_save') % load each swipe identified 
-% 
 % [swipe_save] = create_swipe_files(tC_save,name_save,file_loc,'trial');
-% 
 % save('..\Create_adj\swipes_trial.mat','swipe_save','name_save')
 
 %% Pretrial
-file_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\'; %NaN; % [data restricted]
+file_loc = [Data_loc,'\Data\Krysiek_data\subject_data\']; % [data restricted]
 load('tC_pretrial.mat','tC_save','name_save') % load each swipe identified 
-
 [swipe_save] = create_swipe_files(tC_save,name_save,file_loc,'pretrial');
-
 save('..\Create_adj\swipes_pretrial.mat','swipe_save','name_save')
 
 %%%%%%% Functions %%%%%%%

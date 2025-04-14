@@ -2,13 +2,15 @@
 % Use spline curves and linear interpolation to find the continuation of swipes, 
 % when multiple swipes occur simultaneously. Also check for and correct errors in the touch count.
 
+Data_loc = NaN; % [data folder shared with reviewers]
+
 %% Trial
-% folder_loc = NaN; % [data restricted]
+% folder_loc = [Data_loc,'\Data\PlayCare\']; % [data restricted]
 % [tC_save,name_save] = track_swipes(folder_loc,'trial');
 % save("Data\tC_trial_dummy.mat","name_save","tC_save")
 
 %% Pretrial
-folder_loc = 'C:\Users\pxb08145\OneDrive - University of Strathclyde\Documents\Research\Autism\Data\Krysiek_data\subject_data\'; %NaN; % [data restricted]
+folder_loc = [Data_loc,'\Data\Krysiek_data\subject_data\']; % [data restricted]
 [tC_save,name_save] = track_swipes(folder_loc,'pretrial');
 save("Data\tC_pretrial_dummy.mat","name_save","tC_save")
 
